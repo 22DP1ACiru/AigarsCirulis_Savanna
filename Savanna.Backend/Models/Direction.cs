@@ -16,6 +16,11 @@
     {
         private static readonly Random _random = new Random();
 
+        /// <summary>
+        /// Gets the offset for the specified direction.
+        /// </summary>
+        /// <param name="direction"></param>
+        /// <returns></returns>
         public static Position GetOffset(this Direction direction)
         {
             return direction switch
@@ -31,6 +36,11 @@
                 _ => new Position(0, 0)
             };
         }
+
+        /// <summary>
+        /// Gets a random direction.
+        /// </summary>
+        /// <returns></returns>
         public static Direction GetRandomDirection()
         {
             Array values = Enum.GetValues(typeof(Direction));

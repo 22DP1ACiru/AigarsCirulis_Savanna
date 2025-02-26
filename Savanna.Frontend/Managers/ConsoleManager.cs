@@ -5,8 +5,14 @@
     using Savanna.Backend.Constants;
     using Savanna.Frontend.Constants;
 
+    /// <summary>
+    /// Manages the console display.
+    /// </summary>
     public class ConsoleManager
     {
+        /// <summary>
+        /// Initializes the console window with the appropriate title, size, and settings.
+        /// </summary>
         public void Initialize()
         {
             Console.Title = ConsoleConstants.GameTitle;
@@ -35,6 +41,10 @@
             }
         }
 
+        /// <summary>
+        /// Renders the game grid and information panel on the console.
+        /// </summary>
+        /// <param name="displayGrid">The 2D character array representing the game grid.</param>
         public void Render(char[,] displayGrid)
         {
             Console.SetCursorPosition(0, 0);

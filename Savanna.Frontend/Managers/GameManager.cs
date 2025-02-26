@@ -5,6 +5,9 @@
     using Savanna.Backend.Constants;
     using Savanna.Backend.Interfaces;
 
+    /// <summary>
+    /// Manages the game loop and coordinates between the game engine, console, and input.
+    /// </summary>
     public class GameManager
     {
         private readonly IGameEngine _gameEngine;
@@ -12,6 +15,12 @@
         private readonly InputManager _inputManager;
         private bool _isRunning;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameManager"/> class.
+        /// </summary>
+        /// <param name="gameEngine">The game engine instance.</param>
+        /// <param name="consoleManager">The console manager instance.</param>
+        /// <param name="inputManager">The input manager instance.</param>
         public GameManager(IGameEngine gameEngine, ConsoleManager consoleManager, InputManager inputManager)
         {
             _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
@@ -19,6 +28,9 @@
             _inputManager = inputManager ?? throw new ArgumentNullException(nameof(inputManager));
         }
 
+        /// <summary>
+        /// Initializes the game by setting up the game engine and console.
+        /// </summary>
         public void Initialize()
         {
             _gameEngine.Initialize();
@@ -30,6 +42,9 @@
             _gameEngine.AddAnimal(AnimalConstants.LionSymbol);
         }
 
+        /// <summary>
+        /// Starts and runs the game loop.
+        /// </summary>
         public void Run()
         {
             _isRunning = true;
