@@ -14,6 +14,8 @@
 
     public static class DirectionExtensions
     {
+        private static readonly Random _random = new Random();
+
         public static Position GetOffset(this Direction direction)
         {
             return direction switch
@@ -29,12 +31,10 @@
                 _ => new Position(0, 0)
             };
         }
-
         public static Direction GetRandomDirection()
         {
             Array values = Enum.GetValues(typeof(Direction));
-            Random random = new Random();
-            return (Direction)values.GetValue(random.Next(values.Length));
+            return (Direction)values.GetValue(_random.Next(values.Length));
         }
     }
 }
