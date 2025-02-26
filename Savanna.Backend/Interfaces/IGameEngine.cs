@@ -15,8 +15,8 @@
         /// <summary>
         /// Adds a new animal of the specified type at a random empty position on the game grid.
         /// </summary>
-        /// <param name="animalType">The character symbol representing the type of animal to add.</param>
-        void AddAnimal(char animalType);
+        /// <param name="animal">Animal object to add.</param>
+        void AddAnimal(IAnimal animal);
 
         /// <summary>
         /// Generates a display grid representing the current state of the game.

@@ -2,8 +2,10 @@
 {
     using System;
     using System.Threading;
+    using Savanna.Backend.Animals;
     using Savanna.Backend.Constants;
     using Savanna.Backend.Interfaces;
+    using Savanna.Backend.Models;
 
     /// <summary>
     /// Manages the game loop and coordinates between the game engine, console, and input.
@@ -37,9 +39,9 @@
             _consoleManager.Initialize();
 
             // Add initial animals
-            _gameEngine.AddAnimal(AnimalConstants.AntelopeSymbol);
-            _gameEngine.AddAnimal(AnimalConstants.AntelopeSymbol);
-            _gameEngine.AddAnimal(AnimalConstants.LionSymbol);
+            _gameEngine.AddAnimal(new Antelope(new Position(0, 0)));
+            _gameEngine.AddAnimal(new Antelope(new Position(0, 0)));
+            _gameEngine.AddAnimal(new Lion(new Position(0, 0)));
         }
 
         /// <summary>

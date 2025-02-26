@@ -10,7 +10,7 @@
     {
         protected readonly Random Random = new Random();
 
-        public Position Position { get; protected set; }
+        public Position Position { get; set; }
         public abstract char Symbol { get; }
         public virtual int VisionRange => AnimalConstants.DefaultVisionRange;
         public abstract int MovementSpeed { get; }

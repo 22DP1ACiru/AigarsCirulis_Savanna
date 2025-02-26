@@ -43,23 +43,14 @@
         }
 
         /// <summary>
-        /// Adds a new animal of the specified type at a random empty position on the game grid.
+        /// Adds a new animal at a random empty position on the game grid.
         /// </summary>
-        /// <param name="animalType">The character symbol representing the type of animal to add.</param>
-        public void AddAnimal(char animalType)
+        /// <param name="animal">The animal to add.</param>
+        public void AddAnimal(IAnimal animal)
         {
             Position position = _gameGrid.GetRandomEmptyPosition();
-
-            switch (animalType)
-            {
-                case AnimalConstants.AntelopeSymbol:
-                    _animals.Add(new Antelope(position));
-                    break;
-
-                case AnimalConstants.LionSymbol:
-                    _animals.Add(new Lion(position));
-                    break;
-            }
+            animal.Position = position; // Set the animal's position
+            _animals.Add(animal);
         }
 
         /// <summary>

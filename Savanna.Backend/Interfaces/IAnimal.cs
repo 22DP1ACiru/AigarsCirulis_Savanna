@@ -10,7 +10,7 @@
         /// <summary>
         /// Gets the current position of the animal in the game grid.
         /// </summary>
-        Position Position { get; }
+        Position Position { get; set; }
 
         /// <summary>
         /// Gets the character symbol used to represent this animal on the display grid.
