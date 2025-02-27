@@ -1,0 +1,16 @@
+{
+  "DefaultVisionRange": 4,
+  "Animals": {
+    "Antelope": {
+      "VisionRange": 6,
+      "MovementSpeed": 1,
+      "Symbol": "A"
+    },
+    "Lion": {
+      "VisionRange": 5,
+      "MovementSpeed": 2,
+      "Symbol": "L",
+      "DigestionTime": 2
+    }
+  }
+}

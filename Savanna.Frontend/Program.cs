@@ -1,6 +1,7 @@
 ﻿namespace Savanna.Frontend
 {
     using Savanna.Backend;
+    using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Frontend.Managers;
 
@@ -8,6 +9,9 @@
     {
         static void Main(string[] args)
         {
+            // Initialize configuration service to load animal config file that contains all Animal specific constants
+            var configService = ConfigurationService.Instance;
+
             // Create dependencies
             IGameEngine gameEngine = new GameEngine();
             ConsoleManager consoleManager = new ConsoleManager();

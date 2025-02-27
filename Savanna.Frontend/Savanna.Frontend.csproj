@@ -11,4 +11,10 @@
     <ProjectReference Include="..\Savanna.Backend\Savanna.Backend.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="AnimalConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

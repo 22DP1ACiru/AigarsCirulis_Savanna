@@ -1,19 +1,23 @@
 ﻿namespace Savanna.Backend.Constants
 {
+    using Savanna.Backend.Configuration;
+
     public static class AnimalConstants
     {
+        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
+
         // Shared constants
-        public const int DefaultVisionRange = 4;
+        public static int DefaultVisionRange => _configService.AnimalConfig.DefaultVisionRange;
 
         // Antelope constants
-        public const int AntelopeVisionRange = 6;
-        public const int AntelopeMovementSpeed = 1;
-        public const char AntelopeSymbol = 'A';
+        public static int AntelopeVisionRange => _configService.GetAnimalConfig("Antelope").VisionRange;
+        public static int AntelopeMovementSpeed => _configService.GetAnimalConfig("Antelope").MovementSpeed;
+        public static char AntelopeSymbol => _configService.GetAnimalConfig("Antelope").Symbol;
 
         // Lion constants
-        public const int LionVisionRange = 5;
-        public const int LionMovementSpeed = 2;
-        public const char LionSymbol = 'L';
-        public const int LionDigestionTime = 2;
+        public static int LionVisionRange => _configService.GetAnimalConfig("Lion").VisionRange;
+        public static int LionMovementSpeed => _configService.GetAnimalConfig("Lion").MovementSpeed;
+        public static char LionSymbol => _configService.GetAnimalConfig("Lion").Symbol;
+        public static int LionDigestionTime => _configService.GetAnimalConfig("Lion").DigestionTime ?? 2;
     }
 }
