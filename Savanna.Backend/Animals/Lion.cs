@@ -60,11 +60,13 @@
                     // Change the prey's state to not alive through the interface
                     var antelopeAsIAnimal = closestPrey;
 
-                    // Add a method to IAnimal to set the alive status
                     if (antelopeAsIAnimal is IKillable killable)
                     {
                         killable.Kill();
                         _digestionTimeRemaining = AnimalConstants.LionDigestionTime;
+
+                        // Lion regains health from eating the prey
+                        Health = MaxHealth;
                     }
                 }
             }

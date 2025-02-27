@@ -14,6 +14,9 @@
         public override int MovementSpeed => AnimalConstants.AntelopeMovementSpeed;
         public override double MaxHealth => AnimalConstants.AntelopeMaxHealth;
 
+        // Health threshold when the antelope considers grazing instead of moving
+        private double _grazingThreshold => MaxHealth * 0.5; // Graze when below 50% health
+
         public Antelope(Position position) : base(position) { }
 
         public override void Act(List<IAnimal> animals)
@@ -22,6 +25,13 @@
 
             var visibleAnimals = LookAround(animals);
             var predators = visibleAnimals.Where(a => a.Symbol == AnimalConstants.LionSymbol).ToList();
+
+            // If health is low and no predators are nearby, graze
+            if (Health < _grazingThreshold && !predators.Any())
+            {
+                Graze();
+                return; // Skip movement this turn since it is spent grazing
+            }
 
             if (predators.Any())
             {
@@ -50,6 +60,12 @@
                 // Move randomly if no predators are visible
                 Move(DirectionExtensions.GetRandomDirection());
             }
+        }
+
+        private void Graze()
+        {
+            // Åntelope eats grass and regains health
+            Health = MaxHealth;
         }
     }
 }
