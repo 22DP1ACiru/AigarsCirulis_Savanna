@@ -26,6 +26,9 @@
             var visibleAnimals = LookAround(animals);
             var predators = visibleAnimals.Where(a => a.Symbol == AnimalConstants.LionSymbol).ToList();
 
+            // Check for potential reproduction
+            CheckNearbyAnimalsForBirth(animals);
+
             // If health is low and no predators are nearby, graze
             if (Health < _grazingThreshold && !predators.Any())
             {
@@ -66,6 +69,12 @@
         {
             // Åntelope eats grass and regains health
             Health = MaxHealth;
+        }
+
+        protected override void Birth()
+        {
+            // Request a new Antelope from the GameEngine
+            GameEngineMediator.Instance.RequestAnimalCreation(new Antelope(Position));
         }
     }
 }

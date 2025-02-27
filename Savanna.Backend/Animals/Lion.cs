@@ -22,6 +22,9 @@
         {
             if (!IsAlive) return;
 
+            // Check for potential reproduction
+            CheckNearbyAnimalsForBirth(animals);
+
             if (_digestionTimeRemaining > 0)
             {
                 _digestionTimeRemaining--;
@@ -75,6 +78,12 @@
                 // Move randomly if no prey is visible
                 Move(DirectionExtensions.GetRandomDirection());
             }
+        }
+
+        protected override void Birth()
+        {
+            // Request a new Lion from the GameEngine
+            GameEngineMediator.Instance.RequestAnimalCreation(new Lion(Position));
         }
     }
 }

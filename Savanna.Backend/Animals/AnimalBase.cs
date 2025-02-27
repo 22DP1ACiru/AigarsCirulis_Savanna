@@ -81,5 +81,53 @@
         {
             IsAlive = false;
         }
+
+        protected virtual void CheckNearbyAnimalsForBirth(List<IAnimal> animals)
+        {
+            if (!IsAlive) return;
+
+            // Only check for animals of the same type (using symbol as identifier)
+            var nearbyAnimals = animals
+                .Where(a => a != this && a.IsAlive && a.Symbol == this.Symbol)
+                .Where(a => Position.DistanceTo(a.Position) <= 1.5) // Only very close animals
+                .ToList();
+
+            foreach (var animal in nearbyAnimals)
+            {
+                // Initialize counter if this is the first encounter
+                if (!_proximityCounter.ContainsKey(animal))
+                {
+                    _proximityCounter[animal] = 1;
+                }
+                else
+                {
+                    _proximityCounter[animal]++;
+
+                    // Check if the animals have been together for 3 consecutive turns
+                    if (_proximityCounter[animal] >= 3)
+                    {
+                        // Only one animal initiates reproduction to avoid duplicate offspring
+                        if (GetHashCode() < animal.GetHashCode())
+                        {
+                            Birth();
+                        }
+
+                        _proximityCounter[animal] = 0;
+                    }
+                }
+            }
+
+            // Reset counters for animals no longer nearby or not alive
+            var keysToRemove = _proximityCounter.Keys
+                .Where(a => !nearbyAnimals.Contains(a) || !a.IsAlive)
+                .ToList();
+
+            foreach (var key in keysToRemove)
+            {
+                _proximityCounter.Remove(key);
+            }
+        }
+
+        protected abstract void Birth();
     }
 }
