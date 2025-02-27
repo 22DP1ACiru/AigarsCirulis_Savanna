@@ -12,6 +12,7 @@
         public override char Symbol => AnimalConstants.AntelopeSymbol;
         public override int VisionRange => AnimalConstants.AntelopeVisionRange;
         public override int MovementSpeed => AnimalConstants.AntelopeMovementSpeed;
+        public override double MaxHealth => AnimalConstants.AntelopeMaxHealth;
 
         public Antelope(Position position) : base(position) { }
 

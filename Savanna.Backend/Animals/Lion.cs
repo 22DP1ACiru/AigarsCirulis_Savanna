@@ -12,6 +12,7 @@
         public override char Symbol => AnimalConstants.LionSymbol;
         public override int VisionRange => AnimalConstants.LionVisionRange;
         public override int MovementSpeed => AnimalConstants.LionMovementSpeed;
+        public override double MaxHealth => AnimalConstants.LionMaxHealth;
 
         private int _digestionTimeRemaining = 0;
 

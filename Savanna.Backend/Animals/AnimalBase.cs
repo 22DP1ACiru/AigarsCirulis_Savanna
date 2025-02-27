@@ -9,16 +9,22 @@
     public abstract class AnimalBase : IAnimal, IKillable
     {
         protected readonly Random Random = new Random();
+        private readonly Dictionary<IAnimal, int> _proximityCounter = new Dictionary<IAnimal, int>();
 
         public Position Position { get; set; }
         public abstract char Symbol { get; }
         public virtual int VisionRange => AnimalConstants.DefaultVisionRange;
         public abstract int MovementSpeed { get; }
+
         public bool IsAlive { get; protected set; } = true;
+        public double Health { get; protected set; }
+        public abstract double MaxHealth { get; }
+        public virtual double HealthDrainPerMove => AnimalConstants.HealthDrainPerMove;
 
         protected AnimalBase(Position position)
         {
             Position = position;
+            Health = MaxHealth;
         }
 
         public virtual void Move(Direction direction)
@@ -38,6 +44,15 @@
                     newPosition.Y >= 0 && newPosition.Y < Constants.GameConstants.GridHeight)
                 {
                     Position = newPosition;
+
+                    // Drain health when moving
+                    Health -= HealthDrainPerMove;
+
+                    // Check if animal should die from lack of health
+                    if (Health <= 0)
+                    {
+                        Kill();
+                    }
                 }
             }
         }
