@@ -109,7 +109,7 @@
                         // Only one animal initiates reproduction to avoid duplicate offspring
                         if (GetHashCode() < animal.GetHashCode())
                         {
-                            Birth();
+                            CreateOffspring();
                         }
 
                         _proximityCounter[animal] = 0;
@@ -128,6 +128,19 @@
             }
         }
 
-        protected abstract void Birth();
+        protected virtual void CreateOffspring()
+        {
+            // Find an empty adjacent position
+            Position birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
+
+            if (birthPosition != null)
+            {
+                // Create offspring at the empty adjacent position
+                IAnimal offspring = Birth(birthPosition);
+                GameEngineMediator.Instance.RequestAnimalCreation(offspring);
+            }
+        }
+
+        protected abstract IAnimal Birth(Position position);
     }
 }

@@ -24,8 +24,9 @@
             _animals.Clear();
             _gameGrid = new GameGrid(_animals);
 
-            // Register this engine with the mediator
+            // Register with mediators
             GameEngineMediator.Instance.RegisterGameEngine(this);
+            GameGridMediator.Instance.RegisterGameGrid(_gameGrid);
 
             // Process any pending animal creation requests
             GameEngineMediator.Instance.ProcessPendingAnimals();

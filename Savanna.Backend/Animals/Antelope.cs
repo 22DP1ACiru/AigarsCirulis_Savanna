@@ -71,10 +71,9 @@
             Health = MaxHealth;
         }
 
-        protected override void Birth()
+        protected override IAnimal Birth(Position position)
         {
-            // Request a new Antelope from the GameEngine
-            GameEngineMediator.Instance.RequestAnimalCreation(new Antelope(Position));
+            return new Antelope(position);
         }
     }
 }

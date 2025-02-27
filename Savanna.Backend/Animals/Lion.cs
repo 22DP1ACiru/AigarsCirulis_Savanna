@@ -80,10 +80,9 @@
             }
         }
 
-        protected override void Birth()
+        protected override IAnimal Birth(Position position)
         {
-            // Request a new Lion from the GameEngine
-            GameEngineMediator.Instance.RequestAnimalCreation(new Lion(Position));
+            return new Lion(position);
         }
     }
 }
