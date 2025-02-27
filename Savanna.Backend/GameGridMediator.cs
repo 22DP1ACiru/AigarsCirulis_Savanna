@@ -85,5 +85,12 @@
 
             return null;
         }
+
+        public IAnimal GetAnimalAtPosition(Position position)
+        {
+            if (_gameGrid == null) return null;
+
+            return _gameGrid.GetAnimalAtPosition(position);
+        }
     }
 }

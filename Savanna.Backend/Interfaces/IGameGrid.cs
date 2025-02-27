@@ -33,5 +33,12 @@
         /// </summary>
         /// <returns>A random empty position.</returns>
         Position GetRandomEmptyPosition();
+
+        /// <summary>
+        /// Gets the animal at the specified position, if any.
+        /// </summary>
+        /// <param name="position">The position to check.</param>
+        /// <returns>The animal at the position, or null if no animal is present.</returns>
+        IAnimal GetAnimalAtPosition(Position position);
     }
 }

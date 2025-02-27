@@ -39,10 +39,26 @@
                     Position.Y + offset.Y
                 );
 
-                if (GameGridMediator.Instance.IsPositionValid(newPosition) &&
-            !GameGridMediator.Instance.IsPositionOccupied(newPosition))
+                if (GameGridMediator.Instance.IsPositionValid(newPosition))
                 {
-                    Position = newPosition;
+                    // Check if the target cell is occupied
+                    var animalAtPosition = GameGridMediator.Instance.GetAnimalAtPosition(newPosition);
+
+                    if (animalAtPosition == null)
+                    {
+                        Position = newPosition;
+                    }
+                    else if (animalAtPosition.GetType() != this.GetType())
+                    {
+                        // Target cell is occupied by an animal of a different type, allow the move
+                        Position = newPosition;
+                    }
+                    else
+                    {
+                        // Target cell is occupied by an animal of the same type
+                        // Block the move
+                        break;
+                    }
 
                     // Drain health when moving
                     Health -= HealthDrainPerMove;
