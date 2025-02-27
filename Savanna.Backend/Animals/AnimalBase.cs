@@ -39,9 +39,8 @@
                     Position.Y + offset.Y
                 );
 
-                // Check if new position is within grid bounds
-                if (newPosition.X >= 0 && newPosition.X < Constants.GameConstants.GridWidth &&
-                    newPosition.Y >= 0 && newPosition.Y < Constants.GameConstants.GridHeight)
+                if (GameGridMediator.Instance.IsPositionValid(newPosition) &&
+            !GameGridMediator.Instance.IsPositionOccupied(newPosition))
                 {
                     Position = newPosition;
 
@@ -53,6 +52,11 @@
                     {
                         Kill();
                     }
+                }
+                else
+                {
+                    // Cannot move in this direction
+                    break;
                 }
             }
         }
