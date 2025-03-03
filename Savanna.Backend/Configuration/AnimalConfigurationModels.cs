@@ -1,15 +1,13 @@
 ﻿namespace Savanna.Backend.Configuration
 {
     using System.Collections.Generic;
-    using System.IO;
-    using System.Text.Json;
 
     public class AnimalConfiguration
     {
-        public int DefaultVisionRange { get; set; } = 4;
-        public double HealthDrainPerMove { get; set; } = 0.5;
-        public int ReproductionProximityCounter { get; set; } = 3;
-        public double ReproductionRange { get; set; } = 1.5;
+        public int DefaultVisionRange { get; set; }
+        public double HealthDrainPerMove { get; set; }
+        public int ReproductionProximityCounter { get; set; }
+        public double ReproductionRange { get; set; }
         public Dictionary<string, AnimalTypeConfig> Animals { get; set; } = new Dictionary<string, AnimalTypeConfig>();
     }
 
