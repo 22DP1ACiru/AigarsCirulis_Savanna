@@ -3,19 +3,22 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Savanna.Backend.Constants;
+    using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
 
     public class Antelope : AnimalBase
     {
-        public override char Symbol => AnimalConstants.AntelopeSymbol;
-        public override int VisionRange => AnimalConstants.AntelopeVisionRange;
-        public override int MovementSpeed => AnimalConstants.AntelopeMovementSpeed;
-        public override double MaxHealth => AnimalConstants.AntelopeMaxHealth;
+        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
+
+        public override char Symbol => _configService.GetAnimalConfig("Antelope").Symbol;
+        public override int VisionRange => _configService.GetAnimalConfig("Antelope").VisionRange;
+        public override int MovementSpeed => _configService.GetAnimalConfig("Antelope").MovementSpeed;
+        public override double MaxHealth => _configService.GetAnimalConfig("Antelope").MaxHealth;
+        public double GrazingThresholdPercentage => _configService.GetAnimalConfig("Antelope").GrazingThresholdPercentage ?? 0.5;
 
         // Health threshold when the antelope considers grazing instead of moving
-        private double _grazingThreshold => MaxHealth * 0.5; // Graze when below 50% health
+        private double _grazingThreshold => MaxHealth * GrazingThresholdPercentage; // Graze when below 50% health
 
         public Antelope(Position position) : base(position) { }
 
@@ -24,7 +27,7 @@
             if (!IsAlive) return;
 
             var visibleAnimals = LookAround(animals);
-            var predators = visibleAnimals.Where(a => a.Symbol == AnimalConstants.LionSymbol).ToList();
+            var predators = visibleAnimals.Where(a => a.Symbol == _configService.GetAnimalConfig("Lion").Symbol).ToList();
 
             // Check for potential reproduction
             CheckNearbyAnimalsForBirth(animals);

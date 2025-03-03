@@ -55,7 +55,7 @@
                     DefaultVisionRange = 4,
                     Animals = new System.Collections.Generic.Dictionary<string, AnimalTypeConfig>
                     {
-                        ["Antelope"] = new AnimalTypeConfig { VisionRange = 6, MovementSpeed = 1, Symbol = 'A' },
+                        ["Antelope"] = new AnimalTypeConfig { VisionRange = 6, MovementSpeed = 1, Symbol = 'A', GrazingThresholdPercentage = 0.5 },
                         ["Lion"] = new AnimalTypeConfig { VisionRange = 5, MovementSpeed = 2, Symbol = 'L', DigestionTime = 2 }
                     }
                 };

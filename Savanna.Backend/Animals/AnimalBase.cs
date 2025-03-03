@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using Savanna.Backend.Constants;
+    using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
 
@@ -10,16 +10,20 @@
     {
         protected readonly Random Random = new Random();
         private readonly Dictionary<IAnimal, int> _proximityCounter = new Dictionary<IAnimal, int>();
+        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
 
         public Position Position { get; set; }
         public abstract char Symbol { get; }
-        public virtual int VisionRange => AnimalConstants.DefaultVisionRange;
+        public virtual int VisionRange => _configService.AnimalConfig.DefaultVisionRange;
         public abstract int MovementSpeed { get; }
 
         public bool IsAlive { get; protected set; } = true;
         public double Health { get; protected set; }
         public abstract double MaxHealth { get; }
-        public virtual double HealthDrainPerMove => AnimalConstants.HealthDrainPerMove;
+        public virtual double HealthDrainPerMove => _configService.AnimalConfig.HealthDrainPerMove;
+
+        public int ReproductionProximityCounter => _configService.AnimalConfig.ReproductionProximityCounter;
+        public double ReproductionRange => _configService.AnimalConfig.ReproductionRange;
 
         protected AnimalBase(Position position)
         {
@@ -109,7 +113,7 @@
             // Only check for animals of the same type (using symbol as identifier)
             var nearbyAnimals = animals
                 .Where(a => a != this && a.IsAlive && a.Symbol == this.Symbol)
-                .Where(a => Position.DistanceTo(a.Position) <= 1.5) // Only very close animals
+                .Where(a => Position.DistanceTo(a.Position) <= ReproductionRange)
                 .ToList();
 
             foreach (var animal in nearbyAnimals)
@@ -123,8 +127,8 @@
                 {
                     _proximityCounter[animal]++;
 
-                    // Check if the animals have been together for 3 consecutive turns
-                    if (_proximityCounter[animal] >= 3)
+                    // Check if the animals have been together for specified consecutive turns
+                    if (_proximityCounter[animal] >= ReproductionProximityCounter)
                     {
                         // Only one animal initiates reproduction to avoid duplicate offspring
                         if (GetHashCode() < animal.GetHashCode())
