@@ -23,6 +23,13 @@
         {
             _animals.Clear();
             _gameGrid = new GameGrid(_animals);
+
+            // Register with mediators
+            GameEngineMediator.Instance.RegisterGameEngine(this);
+            GameGridMediator.Instance.RegisterGameGrid(_gameGrid);
+
+            // Process any pending animal creation requests
+            GameEngineMediator.Instance.ProcessPendingAnimals();
         }
 
         /// <summary>
@@ -40,6 +47,9 @@
 
             // Remove dead animals
             _animals.RemoveAll(a => !a.IsAlive);
+
+            // Process any new animals requested during the update
+            GameEngineMediator.Instance.ProcessPendingAnimals();
         }
 
         /// <summary>

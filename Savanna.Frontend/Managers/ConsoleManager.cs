@@ -102,7 +102,7 @@
                 output.Append(ConsoleConstants.GridBorderHorizontal);
             }
             output.Append(ConsoleConstants.GridBorderCorner);
-            output.AppendLine(); // Fixed: Changed from AppendLine(char) to Append(char) followed by AppendLine()
+            output.AppendLine();
 
             Console.Write(output.ToString());
         }
