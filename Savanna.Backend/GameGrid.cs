@@ -73,5 +73,16 @@
 
             return position;
         }
+
+        /// <summary>
+        /// Gets the animal at the specified position, if any.
+        /// </summary>
+        /// <param name="position">The position to check.</param>
+        /// <returns>The animal at the position, or null if no animal is present.</returns>
+        public IAnimal GetAnimalAtPosition(Position position)
+        {
+            return _animals.FirstOrDefault(a => a.IsAlive && a.Position.X == position.X && a.Position.Y == position.Y);
+        }
+
     }
 }
