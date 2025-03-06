@@ -20,6 +20,7 @@
         public bool IsAlive { get; protected set; } = true;
         public double Health { get; protected set; }
         public abstract double MaxHealth { get; }
+        public abstract int PowerLevel { get; }
         public virtual double HealthDrainPerMove => _configService.AnimalConfig.HealthDrainPerMove;
 
         public int ReproductionProximityCounter => _configService.AnimalConfig.ReproductionProximityCounter;
