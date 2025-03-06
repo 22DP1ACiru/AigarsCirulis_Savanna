@@ -1,11 +1,10 @@
 ﻿namespace Savanna.Backend.Animals
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
+    using Savanna.Backend.Strategy;
 
     public class Antelope : AnimalBase, IHerbivore
     {

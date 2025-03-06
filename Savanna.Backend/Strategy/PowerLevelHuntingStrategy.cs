@@ -1,55 +1,58 @@
-﻿using Savanna.Backend.Interfaces;
-using Savanna.Backend.Models;
-
-public class PowerLevelHuntingStrategy : IHuntingStrategy
+﻿namespace Savanna.Backend.Strategy
 {
-    public bool TryHunt(ICarnivore hunter, IAnimal hunterAsAnimal, List<IAnimal> visibleAnimals)
+    using Savanna.Backend.Interfaces;
+    using Savanna.Backend.Models;
+
+    public class PowerLevelHuntingStrategy : IHuntingStrategy
     {
-        if (!hunterAsAnimal.IsAlive)
-            return false;
-
-        if (hunter.DigestionTimeRemaining > 0)
+        public bool TryHunt(ICarnivore hunter, IAnimal hunterAsAnimal, List<IAnimal> visibleAnimals)
         {
-            hunter.DigestionTimeRemaining--;
-            return true; // Handled the turn by digesting
-        }
+            if (!hunterAsAnimal.IsAlive)
+                return false;
 
-        // Look for prey with lower power level
-        var prey = visibleAnimals
-            .Where(a => a.IsAlive && a.PowerLevel < hunterAsAnimal.PowerLevel)
-            .OrderBy(p => p.Position.DistanceTo(hunterAsAnimal.Position))
-            .FirstOrDefault();
-
-        if (prey != null)
-        {
-            // Calculate chase direction (towards prey)
-            Direction chaseDirection = CalculateDirectionTowards(hunterAsAnimal.Position, prey.Position);
-            hunterAsAnimal.Move(chaseDirection);
-
-            // Check if the hunter caught the prey
-            if (hunterAsAnimal.Position.Equals(prey.Position))
+            if (hunter.DigestionTimeRemaining > 0)
             {
-                hunter.Hunt(prey);
-                return true;
+                hunter.DigestionTimeRemaining--;
+                return true; // Handled the turn by digesting
             }
-            return true; // Handled the turn by chasing
+
+            // Look for prey with lower power level
+            var prey = visibleAnimals
+                .Where(a => a.IsAlive && a.PowerLevel < hunterAsAnimal.PowerLevel)
+                .OrderBy(p => p.Position.DistanceTo(hunterAsAnimal.Position))
+                .FirstOrDefault();
+
+            if (prey != null)
+            {
+                // Calculate chase direction (towards prey)
+                Direction chaseDirection = CalculateDirectionTowards(hunterAsAnimal.Position, prey.Position);
+                hunterAsAnimal.Move(chaseDirection);
+
+                // Check if the hunter caught the prey
+                if (hunterAsAnimal.Position.Equals(prey.Position))
+                {
+                    hunter.Hunt(prey);
+                    return true;
+                }
+                return true; // Handled the turn by chasing
+            }
+
+            return false; // Didn't handle the turn, animal should do something else
         }
 
-        return false; // Didn't handle the turn, animal should do something else
-    }
-
-    private Direction CalculateDirectionTowards(Position from, Position to)
-    {
-        int dx = to.X - from.X;
-        int dy = to.Y - from.Y;
-
-        if (Math.Abs(dx) > Math.Abs(dy))
+        private Direction CalculateDirectionTowards(Position from, Position to)
         {
-            return dx > 0 ? Direction.Right : Direction.Left;
-        }
-        else
-        {
-            return dy > 0 ? Direction.Down : Direction.Up;
+            int dx = to.X - from.X;
+            int dy = to.Y - from.Y;
+
+            if (Math.Abs(dx) > Math.Abs(dy))
+            {
+                return dx > 0 ? Direction.Right : Direction.Left;
+            }
+            else
+            {
+                return dy > 0 ? Direction.Down : Direction.Up;
+            }
         }
     }
 }

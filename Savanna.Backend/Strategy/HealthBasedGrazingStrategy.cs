@@ -1,27 +1,30 @@
-﻿using Savanna.Backend.Animals;
-using Savanna.Backend.Interfaces;
-
-public class HealthBasedGrazingStrategy : IGrazingStrategy
+﻿namespace Savanna.Backend.Strategy
 {
-    public bool ShouldGraze(IHerbivore herbivore, IAnimal herbivoreAsAnimal, List<IAnimal> visibleAnimals)
+    using Savanna.Backend.Animals;
+    using Savanna.Backend.Interfaces;
+
+    public class HealthBasedGrazingStrategy : IGrazingStrategy
     {
-        if (!herbivoreAsAnimal.IsAlive)
-            return false;
-
-        // If it's a herbivore with AnimalBase capabilities, check its health
-        if (herbivoreAsAnimal is AnimalBase animalBase)
+        public bool ShouldGraze(IHerbivore herbivore, IAnimal herbivoreAsAnimal, List<IAnimal> visibleAnimals)
         {
-            double healthThreshold = animalBase.MaxHealth * herbivore.GrazingThresholdPercentage;
+            if (!herbivoreAsAnimal.IsAlive)
+                return false;
 
-            // Look for predators
-            var predators = visibleAnimals
-                .Where(a => a.IsAlive && a.PowerLevel > herbivoreAsAnimal.PowerLevel)
-                .Any();
+            // If it's a herbivore with AnimalBase capabilities, check its health
+            if (herbivoreAsAnimal is AnimalBase animalBase)
+            {
+                double healthThreshold = animalBase.MaxHealth * herbivore.GrazingThresholdPercentage;
 
-            // Graze if health is low and no predators nearby
-            return animalBase.Health < healthThreshold && !predators;
+                // Look for predators
+                var predators = visibleAnimals
+                    .Where(a => a.IsAlive && a.PowerLevel > herbivoreAsAnimal.PowerLevel)
+                    .Any();
+
+                // Graze if health is low and no predators nearby
+                return animalBase.Health < healthThreshold && !predators;
+            }
+
+            return false;
         }
-
-        return false;
     }
 }

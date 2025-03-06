@@ -1,6 +1,7 @@
-﻿using Savanna.Backend.Interfaces;
-
-public interface IGrazingStrategy
+﻿namespace Savanna.Backend.Interfaces
 {
-    bool ShouldGraze(IHerbivore herbivore, IAnimal herbivoreAsAnimal, List<IAnimal> visibleAnimals);
+    public interface IGrazingStrategy
+    {
+        bool ShouldGraze(IHerbivore herbivore, IAnimal herbivoreAsAnimal, List<IAnimal> visibleAnimals);
+    }
 }

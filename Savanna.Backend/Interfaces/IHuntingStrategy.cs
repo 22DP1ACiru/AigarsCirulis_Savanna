@@ -1,6 +1,7 @@
-﻿using Savanna.Backend.Interfaces;
-
-public interface IHuntingStrategy
+﻿namespace Savanna.Backend.Interfaces
 {
-    bool TryHunt(ICarnivore hunter, IAnimal hunterAsAnimal, List<IAnimal> visibleAnimals);
+    public interface IHuntingStrategy
+    {
+        bool TryHunt(ICarnivore hunter, IAnimal hunterAsAnimal, List<IAnimal> visibleAnimals);
+    }
 }

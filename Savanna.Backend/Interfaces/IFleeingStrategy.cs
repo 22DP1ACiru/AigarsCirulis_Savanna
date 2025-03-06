@@ -1,6 +1,7 @@
-﻿using Savanna.Backend.Interfaces;
-
-public interface IFleeingStrategy
+﻿namespace Savanna.Backend.Interfaces
 {
-    bool TryFlee(IAnimal animal, List<IAnimal> visibleAnimals);
+    public interface IFleeingStrategy
+    {
+        bool TryFlee(IAnimal animal, List<IAnimal> visibleAnimals);
+    }
 }
