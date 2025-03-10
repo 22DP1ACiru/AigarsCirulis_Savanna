@@ -10,7 +10,7 @@
     {
         protected readonly Random Random = new Random();
         private readonly Dictionary<IAnimal, int> _proximityCounter = new Dictionary<IAnimal, int>();
-        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
+        protected static readonly ConfigurationService _configService = ConfigurationService.Instance;
 
         public Position Position { get; set; }
         public abstract char Symbol { get; }

@@ -8,7 +8,6 @@
 
     public class Antelope : AnimalBase, IHerbivore
     {
-        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
         private readonly IGrazingStrategy _grazingStrategy;
         private readonly IFleeingStrategy _fleeingStrategy;
 

@@ -9,7 +9,6 @@
 
     public class Lion : AnimalBase, ICarnivore  
     {
-        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
         private readonly IHuntingStrategy _huntingStrategy;
 
         public override char Symbol => _configService.GetAnimalConfig("Lion").Symbol;

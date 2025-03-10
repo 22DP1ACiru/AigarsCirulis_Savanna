@@ -8,7 +8,6 @@ namespace Savanna.Plugins.Hyena
 {
     public class Hyena : AnimalBase, ICarnivore
     {
-        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
         private readonly IHuntingStrategy _huntingStrategy;
         private readonly IFleeingStrategy _fleeingStrategy;
 
