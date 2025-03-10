@@ -10,7 +10,7 @@
     {
         protected readonly Random Random = new Random();
         private readonly Dictionary<IAnimal, int> _proximityCounter = new Dictionary<IAnimal, int>();
-        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
+        protected static readonly ConfigurationService _configService = ConfigurationService.Instance;
 
         public Position Position { get; set; }
         public abstract char Symbol { get; }
@@ -20,6 +20,7 @@
         public bool IsAlive { get; protected set; } = true;
         public double Health { get; protected set; }
         public abstract double MaxHealth { get; }
+        public abstract int PowerLevel { get; }
         public virtual double HealthDrainPerMove => _configService.AnimalConfig.HealthDrainPerMove;
 
         public int ReproductionProximityCounter => _configService.AnimalConfig.ReproductionProximityCounter;

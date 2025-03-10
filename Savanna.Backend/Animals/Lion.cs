@@ -1,25 +1,28 @@
 ﻿namespace Savanna.Backend.Animals
 {
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
+    using Savanna.Backend.Strategy;
 
-    public class Lion : AnimalBase
+
+    public class Lion : AnimalBase, ICarnivore  
     {
-        private static readonly ConfigurationService _configService = ConfigurationService.Instance;
+        private readonly IHuntingStrategy _huntingStrategy;
 
         public override char Symbol => _configService.GetAnimalConfig("Lion").Symbol;
         public override int VisionRange => _configService.GetAnimalConfig("Lion").VisionRange;
         public override int MovementSpeed => _configService.GetAnimalConfig("Lion").MovementSpeed;
         public override double MaxHealth => _configService.GetAnimalConfig("Lion").MaxHealth;
+        public override int PowerLevel => _configService.GetAnimalConfig("Lion").PowerLevel;
         public int DigestionTime => _configService.GetAnimalConfig("Lion").DigestionTime ?? 2;
+        public int DigestionTimeRemaining { get; set; } = 0;
 
-        private int _digestionTimeRemaining = 0;
-
-        public Lion(Position position) : base(position) { }
+        public Lion(Position position) : base(position)
+        {
+            _huntingStrategy = new PowerLevelHuntingStrategy();
+        }
 
         public override void Act(List<IAnimal> animals)
         {
@@ -28,59 +31,31 @@
             // Check for potential reproduction
             CheckNearbyAnimalsForBirth(animals);
 
-            if (_digestionTimeRemaining > 0)
-            {
-                _digestionTimeRemaining--;
-                return; // Lion is digesting and can't move
-            }
-
             var visibleAnimals = LookAround(animals);
-            var prey = visibleAnimals.Where(a => a.Symbol == _configService.GetAnimalConfig("Antelope").Symbol && a.IsAlive).ToList();
 
-            if (prey.Any())
+            // Use the hunting strategy
+            bool actionTaken = _huntingStrategy.TryHunt(this, this, visibleAnimals);
+
+            // If hunting didn't handle the turn, move randomly
+            if (!actionTaken)
             {
-                // Chase the closest prey
-                var closestPrey = prey.OrderBy(p => p.Position.DistanceTo(Position)).First();
-
-                // Calculate chase direction (towards prey)
-                int dx = closestPrey.Position.X - Position.X;
-                int dy = closestPrey.Position.Y - Position.Y;
-
-                Direction chaseDirection;
-
-                if (Math.Abs(dx) > Math.Abs(dy))
-                {
-                    chaseDirection = dx > 0 ? Direction.Right : Direction.Left;
-                }
-                else
-                {
-                    chaseDirection = dy > 0 ? Direction.Down : Direction.Up;
-                }
-
-                Move(chaseDirection);
-
-                // Check if the lion caught the prey
-                if (Position.Equals(closestPrey.Position))
-                {
-                    // Lion caught the prey - need to use the interface method instead of direct access
-                    // Change the prey's state to not alive through the interface
-                    var antelopeAsIAnimal = closestPrey;
-
-                    if (antelopeAsIAnimal is IKillable killable)
-                    {
-                        killable.Kill();
-                        _digestionTimeRemaining = DigestionTime;
-
-                        // Lion regains health from eating the prey
-                        Health = MaxHealth;
-                    }
-                }
-            }
-            else
-            {
-                // Move randomly if no prey is visible
                 Move(DirectionExtensions.GetRandomDirection());
             }
+        }
+
+        public void Hunt(IAnimal prey)
+        {
+            if (prey is IKillable killable)
+            {
+                killable.Kill();
+                DigestionTimeRemaining = DigestionTime;
+                RestoreHealth();
+            }
+        }
+
+        public void RestoreHealth()
+        {
+            Health = MaxHealth;
         }
 
         protected override IAnimal Birth(Position position)

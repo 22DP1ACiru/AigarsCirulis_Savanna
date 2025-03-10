@@ -17,6 +17,7 @@
         public int MovementSpeed { get; set; }
         public char Symbol { get; set; }
         public double MaxHealth { get; set; }
+        public int PowerLevel { get; set; }
 
         public int? DigestionTime { get; set; }
         public double? GrazingThresholdPercentage { get; set; }

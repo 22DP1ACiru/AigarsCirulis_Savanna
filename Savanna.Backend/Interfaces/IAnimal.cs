@@ -28,6 +28,11 @@
         int MovementSpeed { get; }
 
         /// <summary>
+        /// Gets the power level of the animal which defines its behaviour with other animals and status as predator or prey.
+        /// </summary>
+        int PowerLevel { get; }
+
+        /// <summary>
         /// Gets a value indicating whether the animal is alive.
         /// </summary>
         bool IsAlive { get; }
