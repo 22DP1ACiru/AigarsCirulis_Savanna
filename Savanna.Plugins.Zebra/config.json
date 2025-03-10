@@ -1,0 +1,8 @@
+{
+  "VisionRange": 5,
+  "MovementSpeed": 3,
+  "Symbol": "Z",
+  "MaxHealth": 13.0,
+  "PowerLevel": 0,
+  "GrazingThresholdPercentage": 0.8
+}

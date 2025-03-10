@@ -1,0 +1,8 @@
+{
+  "VisionRange": 4,
+  "MovementSpeed": 2,
+  "Symbol": "H",
+  "MaxHealth": 13.0,
+  "PowerLevel": 1,
+  "DigestionTime": 3
+}
