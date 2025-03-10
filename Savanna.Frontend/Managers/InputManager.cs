@@ -14,6 +14,7 @@
     {
         private readonly IGameEngine _gameEngine;
         private readonly Dictionary<ConsoleKey, Action> _keyActions = new Dictionary<ConsoleKey, Action>();
+        private readonly Dictionary<ConsoleKey, IAnimalPlugin> _pluginKeyMappings = new Dictionary<ConsoleKey, IAnimalPlugin>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InputManager"/> class.
@@ -24,6 +25,30 @@
             _gameEngine = gameEngine ?? throw new ArgumentNullException(nameof(gameEngine));
 
             RegisterDefaultKeyActions();
+            InitializePluginKeyMappings();
+        }
+
+        /// <summary>
+        /// Registers the default key actions for built-in animals.
+        /// </summary>
+        private void RegisterDefaultKeyActions()
+        {
+            // Register built-in animal keys
+            _keyActions[ConsoleKey.A] = () => _gameEngine.AddAnimal(new Antelope(new Position(0, 0)));
+            _keyActions[ConsoleKey.L] = () => _gameEngine.AddAnimal(new Lion(new Position(0, 0)));
+        }
+
+        private void InitializePluginKeyMappings()
+        {
+            var pluginManager = PluginManager.Instance;
+            foreach (var plugin in pluginManager.RegisteredPlugins.Values)
+            {
+                var config = plugin.GetAnimalConfig();
+                if (Enum.TryParse(config.Symbol.ToString(), out ConsoleKey key))
+                {
+                    _pluginKeyMappings[key] = plugin;
+                }
+            }
         }
 
         /// <summary>
@@ -37,40 +62,29 @@
             if (!Console.KeyAvailable)
                 return true;
 
-            var key = Console.ReadKey(true);
+            var key = Console.ReadKey(true).Key;
 
             // Check if we have a registered action for this key
-            if (_keyActions.TryGetValue(key.Key, out var action))
+            if (_keyActions.TryGetValue(key, out var action))
             {
                 action();
                 return true;
             }
 
             // Check if this is a plugin animal key
-            char keyChar = char.ToUpper(key.KeyChar);
-            if (pluginManager.RegisteredPlugins.TryGetValue(keyChar, out var plugin))
+            if (_pluginKeyMappings.TryGetValue(key, out var plugin))
             {
                 _gameEngine.AddAnimal(plugin.CreateAnimal(new Position(0, 0)));
                 return true;
             }
 
             // Handle escape key for exiting
-            if (key.Key == ConsoleKey.Escape)
+            if (key == ConsoleKey.Escape)
             {
                 return false;
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Registers the default key actions for built-in animals.
-        /// </summary>
-        private void RegisterDefaultKeyActions()
-        {
-            // Register built-in animal keys
-            _keyActions[ConsoleKey.A] = () => _gameEngine.AddAnimal(new Antelope(new Position(0, 0)));
-            _keyActions[ConsoleKey.L] = () => _gameEngine.AddAnimal(new Lion(new Position(0, 0)));
         }
     }
 }
