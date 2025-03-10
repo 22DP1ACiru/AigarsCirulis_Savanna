@@ -2,7 +2,6 @@
 {
     using System;
     using Savanna.Backend.Animals;
-    using Savanna.Backend.Constants;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
     using Savanna.Backend.Plugins;

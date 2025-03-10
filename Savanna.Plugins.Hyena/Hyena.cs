@@ -1,5 +1,4 @@
 ﻿using Savanna.Backend.Animals;
-using Savanna.Backend.Configuration;
 using Savanna.Backend.Interfaces;
 using Savanna.Backend.Models;
 using Savanna.Backend.Strategy;

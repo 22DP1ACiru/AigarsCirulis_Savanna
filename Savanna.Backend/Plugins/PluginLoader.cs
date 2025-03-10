@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
-    using Savanna.Backend.Constants;
     using Savanna.Backend.Interfaces;
 
     /// <summary>
