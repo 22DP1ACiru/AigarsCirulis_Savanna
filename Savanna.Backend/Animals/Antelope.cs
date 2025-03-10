@@ -19,9 +19,6 @@
         public override int PowerLevel => _configService.GetAnimalConfig("Antelope").PowerLevel;
         public double GrazingThresholdPercentage => _configService.GetAnimalConfig("Antelope").GrazingThresholdPercentage ?? 0.5;
 
-        // Health threshold when the antelope considers grazing instead of moving
-        private double _grazingThreshold => MaxHealth * GrazingThresholdPercentage; // Graze when below 50% health
-
         public Antelope(Position position) : base(position)
         {
             _grazingStrategy = new HealthBasedGrazingStrategy();
