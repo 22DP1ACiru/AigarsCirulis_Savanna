@@ -88,45 +88,5 @@
             // Add or update the plugin configuration
             _pluginConfigs[animalType] = config;
         }
-
-        /// <summary>
-        /// Loads a plugin configuration from an embedded resource in the plugin assembly.
-        /// </summary>
-        /// <param name="pluginAssembly">The assembly containing the plugin.</param>
-        /// <param name="configResourceName">The resource name of the configuration file.</param>
-        /// <returns>True if the configuration was loaded successfully; otherwise, false.</returns>
-        public bool LoadPluginConfigFromResource(Assembly pluginAssembly, string configResourceName)
-        {
-            try
-            {
-                using (Stream stream = pluginAssembly.GetManifestResourceStream(configResourceName))
-                {
-                    if (stream == null)
-                    {
-                        Console.WriteLine($"Resource not found: {configResourceName}");
-                        return false;
-                    }
-
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        string jsonContent = reader.ReadToEnd();
-                        var pluginConfig = JsonSerializer.Deserialize<AnimalConfiguration>(jsonContent);
-
-                        // Register each animal from the plugin configuration
-                        foreach (var animal in pluginConfig.Animals)
-                        {
-                            RegisterPluginConfig(animal.Key, animal.Value);
-                        }
-
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to load plugin configuration: {ex.Message}");
-                return false;
-            }
-        }
     }
 }
