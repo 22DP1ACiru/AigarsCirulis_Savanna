@@ -3,6 +3,7 @@
     using System;
     using System.Text;
     using Savanna.Backend.Constants;
+    using Savanna.Backend.Plugins;
     using Savanna.Frontend.Constants;
 
     /// <summary>
@@ -21,7 +22,10 @@
 
             // Calculate console window size based on grid and info panel
             int windowWidth = (GameConstants.GridWidth * 2) + 3 + ConsoleConstants.InfoPanelWidth;
-            int windowHeight = GameConstants.GridHeight + 4;
+            
+            // Calculate height including space for plugin animals
+            int pluginCount = PluginManager.Instance.RegisteredPlugins.Count;
+            int windowHeight = GameConstants.GridHeight + 4 + Math.Max(0, pluginCount);
 
             try
             {
@@ -62,7 +66,7 @@
                 output.Append(ConsoleConstants.GridBorderHorizontal);
             }
             output.Append(ConsoleConstants.GridBorderCorner);
-            output.AppendLine(); // Fixed: Changed from AppendLine(char) to Append(char) followed by AppendLine()
+            output.AppendLine();
 
             // Draw grid with side borders
             for (int y = 0; y < GameConstants.GridHeight; y++)
@@ -90,6 +94,20 @@
                 else if (y == 3)
                 {
                     output.Append("  L = Lion (Moves 2 cells, hunts Antelopes)");
+                }
+                else
+                {
+                    // Add plugin animal information
+                    int pluginIndex = y - 4;
+                    if (pluginIndex >= 0)
+                    {
+                        var plugins = PluginManager.Instance.RegisteredPlugins.Values.ToList();
+                        if (pluginIndex < plugins.Count)
+                        {
+                            var plugin = plugins[pluginIndex];
+                            output.Append($"  {plugin.GetAnimalConfig().Symbol} = {plugin.AnimalType}");
+                        }
+                    }
                 }
 
                 output.AppendLine();
