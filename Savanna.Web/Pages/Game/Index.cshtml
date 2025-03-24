@@ -1,0 +1,64 @@
+﻿@page
+@using Savanna.Backend.Constants
+@model GameIndexModel
+
+<div id="gameGrid" class="game-grid">
+    @for (int y = 0; y < GameConstants.GridHeight; y++)
+    {
+        <div class="game-row">
+            @for (int x = 0; x < GameConstants.GridWidth; x++)
+            {
+                <div class="game-cell">
+                    @Model.DisplayGrid[x, y]
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<button onclick="addAnimal('Antelope')">Add Antelope</button>
+<button onclick="addAnimal('Lion')">Add Lion</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/gameHub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.on("ReceiveUpdate", (grid) => {
+        let html = '';
+        for (let y = 0; y < grid.length; y++) {
+            html += '<div class="game-row">';
+            const row = grid[y];
+            for (let x = 0; x < row.length; x++) {
+                html += `<div class="game-cell">${row[x] || ' '}</div>`;
+            }
+            html += '</div>';
+        }
+        document.getElementById('gameGrid').innerHTML = html;
+    });
+
+    connection.start().then(() => {
+        connection.invoke("JoinSession", "@Model.SessionId");
+    });
+
+    function addAnimal(animalType) {
+        connection.invoke("AddAnimal", "@Model.SessionId", animalType);
+    }
+</script>
+
+<style>
+    .game-grid {
+        display: grid;
+        grid-template-columns: repeat(@GameConstants.GridWidth, 30px);
+        gap: 2px;
+    }
+    .game-cell {
+        width: 30px;
+        height: 30px;
+        border: 1px solid #ccc;
+        text-align: center;
+        line-height: 30px;
+    }
+</style>
