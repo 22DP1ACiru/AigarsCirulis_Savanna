@@ -47,6 +47,16 @@ namespace Savanna.Web.Hubs
             return jaggedArray;
         }
 
+        public async Task ResetGame(string sessionId)
+        {
+            lock (_sessionService.GetOrCreateSession(sessionId))
+            {
+                var session = _sessionService.GetOrCreateSession(sessionId);
+                session.Engine.Initialize(); // Re-initialize grid
+            }
+            await Clients.Group(sessionId).SendAsync("ReceiveUpdate", new char[0][]);
+        }
+
         public async Task JoinSession(string sessionId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
