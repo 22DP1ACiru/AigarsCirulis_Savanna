@@ -14,6 +14,7 @@
     public class GameEngine : IGameEngine
     {
         private readonly List<IAnimal> _animals = new List<IAnimal>();
+        private readonly object _lock = new object();
         private IGameGrid _gameGrid;
 
         /// <summary>
@@ -38,18 +39,31 @@
         public void Update()
         {
             // Create a copy of the animal list to avoid modification issues during iteration
-            var animalsCopy = _animals.Where(a => a.IsAlive).ToList();
+            List<IAnimal> animalsCopy;
+            lock (_lock)
+            {
+                animalsCopy = _animals.Where(a => a.IsAlive).ToList();
+            }
 
             foreach (var animal in animalsCopy)
             {
-                animal.Act(_animals);
+                // Pass a snapshot of current animals to Act
+                List<IAnimal> snapshot;
+                lock (_lock)
+                {
+                    snapshot = _animals.ToList();
+                }
+                animal.Act(snapshot);
             }
 
-            // Remove dead animals
-            _animals.RemoveAll(a => !a.IsAlive);
+            lock (_lock)
+            {
+                // Remove dead animals
+                _animals.RemoveAll(a => !a.IsAlive);
 
-            // Process any new animals requested during the update
-            GameEngineMediator.Instance.ProcessPendingAnimals();
+                // Process any new animals requested during the update
+                GameEngineMediator.Instance.ProcessPendingAnimals();
+            }
         }
 
         /// <summary>
@@ -58,9 +72,12 @@
         /// <param name="animal">The animal to add.</param>
         public void AddAnimal(IAnimal animal)
         {
-            Position position = _gameGrid.GetRandomEmptyPosition();
-            animal.Position = position; // Set the animal's position
-            _animals.Add(animal);
+            lock (_lock)
+            {
+                Position position = _gameGrid.GetRandomEmptyPosition();
+                animal.Position = position; // Set the animal's position
+                _animals.Add(animal);
+            }
         }
 
         /// <summary>

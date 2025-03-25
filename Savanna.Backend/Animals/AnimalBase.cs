@@ -86,7 +86,8 @@
         {
             List<IAnimal> visibleAnimals = new List<IAnimal>();
 
-            foreach (var animal in animals)
+            // Iterate over a copy to prevent modification during enumeration
+            foreach (var animal in animals.ToList())
             {
                 if (animal == this) continue;
 
@@ -96,7 +97,6 @@
                     visibleAnimals.Add(animal);
                 }
             }
-
             return visibleAnimals;
         }
 
