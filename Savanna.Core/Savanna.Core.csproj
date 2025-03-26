@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Savanna.Backend\Savanna.Backend.csproj" />
+    <ProjectReference Include="..\Savanna.Data\Savanna.Data.csproj" />
   </ItemGroup>
 
 </Project>
