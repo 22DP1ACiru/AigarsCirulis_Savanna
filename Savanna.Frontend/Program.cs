@@ -2,6 +2,7 @@
 {
     using Savanna.Backend;
     using Savanna.Backend.Configuration;
+    using Savanna.Backend.Factories;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Plugins;
     using Savanna.Frontend.Managers;
@@ -17,9 +18,11 @@
             PluginManager.Instance.Initialize();
 
             // Create dependencies
-            IGameEngine gameEngine = new GameEngine();
+            IAnimalFactory animalFactory = new AnimalFactory();
+            IGameEngine gameEngine = new GameEngine(animalFactory);
             ConsoleManager consoleManager = new ConsoleManager();
             InputManager inputManager = new InputManager(gameEngine);
+
 
             // Create and run the game manager
             GameManager gameManager = new GameManager(gameEngine, consoleManager, inputManager);

@@ -8,7 +8,7 @@ namespace Savanna.Plugins.Hyena
 {
     public class HyenaPlugin : IAnimalPlugin
     {
-        public string AnimalType => "Hyena";
+        public string AnimalType => typeof(Hyena).Name;
 
         public IAnimal CreateAnimal(Position position)
         {
