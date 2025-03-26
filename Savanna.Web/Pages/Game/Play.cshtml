@@ -1,0 +1,235 @@
+﻿@page "/Game/{sessionId}"
+@model Savanna.Web.Pages.Game.PlayModel
+@using Savanna.Backend.Constants;
+
+@{
+    ViewData["Title"] = "Savanna Game";
+    var gridWidth = GameConstants.GridWidth;
+    var gridHeight = GameConstants.GridHeight;
+    var cellChar = GameConstants.EmptyCellSymbol.ToString();
+}
+
+@* Only render the game interface if the session is valid *@
+@if (Model.IsValidSession)
+{
+    <h2 class="mb-3">Savanna Game <small class="text-muted fs-6">- Session: @Model.SessionId</small></h2>
+
+    @* Container for the game grid *@
+    <div id="gameGrid" class="game-grid mb-3">
+        <p>Loading game grid...</p>
+    </div>
+
+    <div class="row mb-3">
+        @* Controls for adding animals *@
+        <div class="col-auto">
+            <button onclick="addAnimal('Antelope')" class="btn btn-outline-success btn-sm">Add Antelope (A)</button>
+        </div>
+        <div class="col-auto">
+            <button onclick="addAnimal('Lion')" class="btn btn-outline-danger btn-sm">Add Lion (L)</button>
+        </div>
+        <div class="col-auto ms-auto">
+            <button onclick="resetGame()" class="btn btn-secondary btn-sm">Reset Game</button>
+        </div>
+    </div>
+
+    @* Section for Saving the Game *@
+    <div>
+        <h5>Save Game</h5>
+        <div class="input-group mb-1" style="max-width: 450px;">
+            <span class="input-group-text">Save Name:</span>
+            <input type="text" id="saveGameName" class="form-control" placeholder="Enter a name for your save..." aria-label="Save game name">
+            <button class="btn btn-primary" type="button" onclick="saveGame()">Save Current State</button>
+        </div>
+        @* Area to display save status messages from SignalR *@
+        <div id="saveStatus" class="form-text mb-3" style="min-height: 1.2em;"></div>
+    </div>
+
+    @* Include SignalR client library *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
+    @* Client-side script for SignalR and game interactions *@
+    <script>
+        // --- SignalR Connection Setup ---
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/gameHub") // Matches MapHub configuration
+            .configureLogging(signalR.LogLevel.Warning) // Adjust log level as needed
+            .withAutomaticReconnect() // Optional: Handle reconnections automatically
+            .build();
+
+        const sessionId = "@Model.SessionId"; // Get session ID from the Razor model
+        const emptyCellChar = '@cellChar'; // Get empty cell char from constants
+
+        // --- DOM Elements ---
+        const gameGridElement = document.getElementById('gameGrid');
+        const saveStatusElement = document.getElementById('saveStatus');
+        const saveNameInput = document.getElementById('saveGameName');
+
+        // --- Functions ---
+
+        // Update the visual game grid based on data from server
+        function updateGridDisplay(grid) {
+            if (!gameGridElement) return;
+            if (!grid || grid.length === 0 || grid[0].length === 0) {
+                 gameGridElement.innerHTML = '<p>Waiting for game data...</p>';
+                 return;
+            }
+
+            let html = '';
+            const height = grid.length;    // Number of rows (y)
+            const width = grid[0].length; // Number of columns (x)
+
+            for (let y = 0; y < height; y++) {
+                 html += '<div class="game-row">';
+                 const row = grid[y];
+                 for (let x = 0; x < width; x++) {
+                     const cellContent = (row[x] && row[x] !== emptyCellChar) ? row[x] : ' '; // Use nbsp for spacing
+                     html += `<div class="game-cell">${cellContent}</div>`;
+                 }
+                 html += '</div>';
+             }
+             gameGridElement.innerHTML = html;
+        }
+
+        // Display status messages related to saving
+        function showSaveStatus(message, isSuccess) {
+            if (!saveStatusElement) return;
+            saveStatusElement.textContent = message;
+            saveStatusElement.className = isSuccess ? 'form-text text-success' : 'form-text text-danger';
+             // Clear status after a few seconds
+            setTimeout(() => {
+                 if (saveStatusElement.textContent === message) { // Avoid clearing newer messages
+                    saveStatusElement.textContent = '';
+                    saveStatusElement.className = 'form-text';
+                 }
+                }, 5000);
+        }
+
+        // Handle SignalR connection errors
+        function handleConnectionError(err) {
+             console.error("SignalR Connection Error: ", err);
+             showSaveStatus("Connection error. Please refresh.", false); // Inform user
+        }
+
+        // --- SignalR Event Handlers ---
+        connection.on("ReceiveUpdate", updateGridDisplay);
+        connection.on("SaveStatus", showSaveStatus);
+        // Optional: Handle specific errors from the hub
+        // connection.on("Error", (errorMessage) => { alert(`Server Error: ${errorMessage}`); });
+
+        // --- SignalR Connection Logic ---
+        async function startSignalR() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected.");
+                // Join the specific session group ONCE connected
+                await connection.invoke("JoinSession", sessionId);
+                console.log(`Joined session group: ${sessionId}`);
+            } catch (err) {
+                handleConnectionError(err);
+            }
+        }
+
+        // Handle connection closure (e.g., server restart, network issue)
+        connection.onclose(async (error) => {
+            console.warn(`SignalR connection closed. Error: ${error}. Attempting to reconnect...`);
+            // withAutomaticReconnect handles this, but you might add custom logic here
+            showSaveStatus("Connection lost. Attempting to reconnect...", false);
+        });
+
+        // --- Game Action Functions (called by buttons) ---
+        async function addAnimal(animalType) {
+            if (connection.state !== signalR.HubConnectionState.Connected) {
+                showSaveStatus("Cannot add animal: Not connected.", false); return;
+            }
+            try {
+                await connection.invoke("AddAnimal", sessionId, animalType);
+            } catch (err) {
+                console.error(`Error invoking AddAnimal: ${err}`);
+                showSaveStatus(`Error adding animal: ${err.message || err}`, false);
+            }
+        }
+
+         async function resetGame() {
+            if (connection.state !== signalR.HubConnectionState.Connected) {
+                 showSaveStatus("Cannot reset game: Not connected.", false); return;
+            }
+             if(confirm('Are you sure you want to reset the game state? This cannot be undone.')) {
+                try {
+                    await connection.invoke("ResetGame", sessionId);
+                } catch (err) {
+                    console.error(`Error invoking ResetGame: ${err}`);
+                    showSaveStatus(`Error resetting game: ${err.message || err}`, false);
+                }
+             }
+        }
+
+        async function saveGame() {
+             if (connection.state !== signalR.HubConnectionState.Connected) {
+                 showSaveStatus("Cannot save game: Not connected.", false); return;
+            }
+            const saveName = saveNameInput.value.trim();
+            if (!saveName) {
+                showSaveStatus("Please enter a name for the save.", false);
+                saveNameInput.focus();
+                return;
+            }
+
+            showSaveStatus("Saving...", true); // Indicate saving is in progress
+            try {
+                 // Invoke hub method, hub will send back "SaveStatus" message
+                 await connection.invoke("SaveGame", sessionId, saveName);
+                 saveNameInput.value = ''; // Clear input on successful initiation
+            } catch(err) {
+                 console.error(`Error invoking SaveGame: ${err}`);
+                 showSaveStatus(`Error initiating save: ${err.message || err}`, false);
+            }
+        }
+
+        // --- Initialization ---
+        startSignalR(); // Start the connection when the page loads
+
+    </script>
+
+    @* Basic CSS for the grid - adjust as needed *@
+    <style>
+        .game-grid {
+            display: grid;
+            /* Use CSS variables or directly set based on constants */
+            grid-template-columns: repeat( @gridWidth, 28px); /* Adjust cell size */
+            gap: 1px;
+            font-family: Consolas, monospace;
+            line-height: 1; /* Prevent extra spacing */
+            margin-bottom: 1em;
+            background-color: #f0f0f0; /* Light background for the grid area */
+            border: 1px solid #ccc;
+            width: fit-content; /* Grid only as wide as needed */
+            padding: 2px; /* Small padding around cells */
+        }
+
+        .game-row {
+            display: contents; /* Important for direct cell participation in grid */
+        }
+
+        .game-cell {
+            width: 28px; /* Match grid column size */
+            height: 28px; /* Match grid column size */
+            background-color: #fff; /* Cell background */
+            text-align: center;
+            /* Vertically center content */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+
+}
+else // Render this block if Model.IsValidSession is false
+{
+    <div class="alert alert-danger">
+        <h4>Access Denied</h4>
+        <p>@(Model.ErrorMessage ?? "An error occurred while trying to access this game session.")</p>
+    </div>
+    <a asp-page="Index" class="btn btn-secondary">Return to Dashboard</a>
+}

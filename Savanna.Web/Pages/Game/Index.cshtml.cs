@@ -1,31 +1,102 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Savanna.Backend;
-using Savanna.Backend.Animals;
-using Savanna.Backend.Models;
+using Savanna.Core.Interfaces;
+using Savanna.Core.Models.DTOs;
+using Savanna.Data.Entities;
 
-[Authorize]
-public class GameIndexModel : PageModel
+namespace Savanna.Web.Pages.Game
 {
-    private readonly GameEngine _gameEngine;
-
-    public string SessionId { get; private set; }
-
-    public char[,] DisplayGrid { get; private set; }
-
-    public GameIndexModel()
+    [Authorize]
+    public class IndexModel : PageModel
     {
-        _gameEngine = new GameEngine();
-        _gameEngine.Initialize();
+        private readonly IGameSaveService _gameSaveService;
+        private readonly IGameSessionService _gameSessionService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        _gameEngine.AddAnimal(new Antelope(new Position(0, 0)));
-        _gameEngine.AddAnimal(new Antelope(new Position(0, 0)));
-        _gameEngine.AddAnimal(new Lion(new Position(0, 0)));
-    }
+        public IndexModel(
+            IGameSaveService gameSaveService,
+            IGameSessionService gameSessionService,
+            UserManager<ApplicationUser> userManager)
+        {
+            _gameSaveService = gameSaveService;
+            _gameSessionService = gameSessionService;
+            _userManager = userManager;
+        }
 
-    public void OnGet(string sessionId)
-    {
-        DisplayGrid = _gameEngine.GetDisplayGrid();
-        SessionId = sessionId;
+        // Property to hold the list of saves for the view
+        public IEnumerable<GameSaveDto> UserSaves { get; set; } = new List<GameSaveDto>();
+
+        // Property for displaying messages (e.g., load/delete status)
+        [TempData]
+        public string InfoMessage { get; set; }
+
+        // --- Page Handlers ---
+        public async Task OnGetAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                UserSaves = await _gameSaveService.GetUserSaves(user.Id);
+            }
+        }
+
+        public async Task<IActionResult> OnPostStartNewGameAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(); // Should not happen if [Authorize] works
+            }
+
+            string newSessionId = Guid.NewGuid().ToString("N");
+            var session = _gameSessionService.GetOrCreateSession(newSessionId);
+            session.OwnerUserId = user.Id;
+            session.InitializeNewGame();
+
+            // Redirect to the Play page for the new session
+            return RedirectToPage("Play", new { sessionId = newSessionId });
+        }
+
+        public async Task<IActionResult> OnPostLoadGameAsync(int saveId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            string newSessionId = await _gameSaveService.LoadGameState(saveId, user.Id);
+
+            if (newSessionId != null)
+            {
+                // Redirect to the Play page for the loaded session
+                return RedirectToPage("Play", new { sessionId = newSessionId });
+            }
+            else
+            {
+                InfoMessage = "Failed to load the selected game. It might be corrupted or no longer exist.";
+                return RedirectToPage();
+            }
+        }
+
+        public async Task<IActionResult> OnPostDeleteGameAsync(int saveId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                try
+                {
+                    await _gameSaveService.DeleteSave(saveId, user.Id);
+                    InfoMessage = "Game save deleted successfully.";
+                }
+                catch (Exception ex) // Catch potential errors from service
+                {
+                    InfoMessage = "An error occurred while deleting the game save.";
+                }
+            }
+            return RedirectToPage();
+        }
     }
 }
