@@ -1,10 +1,10 @@
 ﻿namespace Savanna.Backend.Animals
 {
     using System.Collections.Generic;
-    using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
     using Savanna.Backend.Strategy;
+    using Savanna.Backend.Models.State;
 
 
     public class Lion : AnimalBase, ICarnivore  
@@ -22,6 +22,20 @@
         public Lion(Position position) : base(position)
         {
             _huntingStrategy = new PowerLevelHuntingStrategy();
+        }
+
+        public override AnimalStateDto GetState()
+        {
+            var state = base.GetState(); // Get common state from base
+            state.DigestionTimeRemaining = this.DigestionTimeRemaining;
+            return state;
+        }
+
+        public override void LoadState(AnimalStateDto state)
+        {
+            base.LoadState(state); // Restore common state using base method
+
+            this.DigestionTimeRemaining = state.DigestionTimeRemaining ?? 0;
         }
 
         public override void Act(List<IAnimal> animals)

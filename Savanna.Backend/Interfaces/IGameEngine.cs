@@ -2,6 +2,8 @@
 {
     public interface IGameEngine
     {
+        int IterationCount { get; }
+
         /// <summary>
         /// Initializes the game engine by creating a new game grid and clearing existing animals.
         /// </summary>

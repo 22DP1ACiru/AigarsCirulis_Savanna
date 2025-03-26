@@ -1,6 +1,7 @@
 ﻿namespace Savanna.Backend.Interfaces
 {
     using Savanna.Backend.Models;
+    using Savanna.Backend.Models.State;
 
     /// <summary>
     /// Represents an animal in the savanna simulation.
@@ -38,6 +39,16 @@
         bool IsAlive { get; }
 
         /// <summary>
+        /// Gets the health level of the animal.
+        /// </summary>
+        double Health { get; }
+
+        /// <summary>
+        /// Gets the unique type identifier string.
+        /// </summary>
+        string AnimalTypeName { get; }
+
+        /// <summary>
         /// Moves the animal in the specified direction.
         /// </summary>
         /// <param name="direction">The direction in which to move.</param>
@@ -55,5 +66,13 @@
         /// </summary>
         /// <param name="animals">The list of all animals in the simulation.</param>
         void Act(List<IAnimal> animals);
+
+        /// <summary>
+        /// Gets the current state of the animal.
+        /// </summary>
+        /// <returns>Data transfer object representing animal state.</returns>
+        AnimalStateDto GetState();
+
+        void LoadState(AnimalStateDto state);
     }
 }
