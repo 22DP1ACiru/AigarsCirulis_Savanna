@@ -46,41 +46,53 @@
         /// </summary>
         public void Update()
         {
+            // Create a copy of the animal list to avoid modification issues during iteration
+            List<IAnimal> animalsToAct;
+            List<IAnimal> snapshotForAct;
+
             lock (_lock)
             {
                 IterationCount++;
-            }
 
-            // Create a copy of the animal list to avoid modification issues during iteration
-            List<IAnimal> animalsCopy;
-            lock (_lock)
-            {
-                animalsCopy = _animals.Where(a => a.IsAlive).ToList();
-            }
+                animalsToAct = _animals.Where(a => a.IsAlive).ToList();
+                snapshotForAct = _animals.ToList();
 
-            List<IAnimal> snapshotForAll;
-            lock (_lock)
-            { 
-                snapshotForAll = _animals.ToList(); 
-            }
-
-            foreach (var animal in animalsCopy)
-            {
-                // Ensure animal is still alive before acting (could have been killed by another animal in the same tick)
-                if (animal.IsAlive)
+                foreach (var animal in animalsToAct)
                 {
-                    animal.Act(snapshotForAll); // Pass consistent snapshot
+                    if (animal.IsAlive)
+                    {
+                        try
+                        {
+                            animal.Act(snapshotForAct);
+                        }
+                        catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
+                        {
+                            Console.WriteLine($"[ERROR][Session Update] Grid full exception during animal action: {ioex.Message}");
+                            break; // Stop processing actions for this tick if grid is full during Act
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[ERROR][Session Update] Exception during Act for {animal.GetType().Name}: {ex.Message}");
+                        }
+                    }
                 }
-            }
-    
 
-            lock (_lock)
-            {
+                try
+                {
+                    GameEngineMediator.Instance.ProcessPendingAnimals(); // Process births etc.
+                }
+                catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
+                {
+                    Console.WriteLine($"[ERROR][Session Update] Grid full exception during ProcessPendingAnimals: {ioex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR][Session Update] Exception during ProcessPendingAnimals: {ex.Message}");
+                }
+
                 // Remove dead animals
                 _animals.RemoveAll(a => !a.IsAlive);
 
-                // Process any new animals requested during the update
-                GameEngineMediator.Instance.ProcessPendingAnimals();
             }
         }
 
@@ -94,9 +106,16 @@
 
             lock (_lock)
             {
-                Position position = _gameGrid.GetRandomEmptyPosition();
-                animal.Position = position; // Set the animal's position
-                _animals.Add(animal);
+                try
+                {
+                    Position position = _gameGrid.GetRandomEmptyPosition();
+                    animal.Position = position;
+                    _animals.Add(animal);
+                }
+                catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full") || ioex.Message.Contains("find empty position"))
+                {
+                    Console.WriteLine($"[WARNING] Failed to add animal {animal.GetType().Name}: {ioex.Message}");
+                }
             }
         }
 
@@ -106,31 +125,34 @@
         /// <returns>A 2D character array representing the game grid with animals.</returns>
         public char[,] GetDisplayGrid()
         {
-            char[,] displayGrid = new char[GameConstants.GridWidth, GameConstants.GridHeight];
-
-            // Initialize with empty spaces
-            for (int x = 0; x < GameConstants.GridWidth; x++)
+            lock (_lock)
             {
-                for (int y = 0; y < GameConstants.GridHeight; y++)
+                char[,] displayGrid = new char[GameConstants.GridWidth, GameConstants.GridHeight];
+
+                // Initialize with empty spaces
+                for (int x = 0; x < GameConstants.GridWidth; x++)
                 {
-                    displayGrid[x, y] = GameConstants.EmptyCellSymbol;
+                    for (int y = 0; y < GameConstants.GridHeight; y++)
+                    {
+                        displayGrid[x, y] = GameConstants.EmptyCellSymbol;
+                    }
                 }
-            }
 
-            // Add animals to the display grid
-            foreach (var animal in _animals.Where(a => a.IsAlive))
-            {
-                int x = Math.Clamp(animal.Position.X, 0, GameConstants.GridWidth - 1);
-                int y = Math.Clamp(animal.Position.Y, 0, GameConstants.GridHeight - 1);
-                displayGrid[x, y] = animal.Symbol;
-            }
+                // Add animals to the display grid
+                foreach (var animal in _animals.Where(a => a.IsAlive))
+                {
+                    int x = Math.Clamp(animal.Position.X, 0, GameConstants.GridWidth - 1);
+                    int y = Math.Clamp(animal.Position.Y, 0, GameConstants.GridHeight - 1);
+                    displayGrid[x, y] = animal.Symbol;
+                }
 
-            return displayGrid;
+                return displayGrid;
+            }
         }
 
         public GameStateDto GetGameState()
         {
-            lock (_lock) // Ensure thread safety while reading state
+            lock (_lock)
             {
                 var gameState = new GameStateDto
                 {
