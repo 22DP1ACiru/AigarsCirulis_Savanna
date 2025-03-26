@@ -5,6 +5,7 @@ using Savanna.Data.Entities;
 using Savanna.Backend.Models.State;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace Savanna.Core.Services
 {
@@ -50,7 +51,8 @@ namespace Savanna.Core.Services
         /// </summary>
         public async Task SaveGameState(string sessionId, string saveName, string userId)
         {
-            _logger?.LogInformation("Attempting to save game state for Session: {SessionId}, User: {UserId}, Name: {SaveName}", sessionId, userId, saveName);
+            _logger?.LogInformation("Attempting to save game state for Session: {SessionId}, User: {UserId}, Proposed Name: {SaveName}", sessionId, userId, saveName); 
+            
             try
             {
                 var session = _sessionService.GetOrCreateSession(sessionId);
@@ -62,6 +64,10 @@ namespace Savanna.Core.Services
                     throw new UnauthorizedAccessException("User does not own this session or session not found.");
                 }
 
+                // Generate a unique save name if necessary
+                string finalSaveName = await GenerateUniqueSaveNameAsync(userId, saveName);
+                _logger?.LogDebug("Generated unique save name: {FinalSaveName}", finalSaveName);
+
                 GameStateDto gameState = session.Engine.GetGameState();
 
                 string serializedState = JsonSerializer.Serialize(gameState, new JsonSerializerOptions { WriteIndented = false });
@@ -70,7 +76,7 @@ namespace Savanna.Core.Services
                 var gameSave = new GameSave
                 {
                     UserId = userId,
-                    SaveName = saveName,
+                    SaveName = finalSaveName,
                     GameState = serializedState,
                     Iteration = gameState.IterationCount,
                     SaveDate = DateTime.UtcNow
@@ -161,6 +167,11 @@ namespace Savanna.Core.Services
             }
         }
 
+        /// <summary>
+        /// Deserializes a GameStateDto from a JSON string.
+        /// </summary>
+        /// <param name="serializedData"></param>
+        /// <returns>GameState data transfer object for loading game.</returns>
         private GameStateDto DeserializeGameState(string serializedData)
         {
             if (string.IsNullOrWhiteSpace(serializedData))
@@ -206,6 +217,48 @@ namespace Savanna.Core.Services
 
             _logger?.LogDebug("Save validation successful for Save ID: {SaveId}, User: {UserId}", saveId, userId);
             return gameSave;
+        }
+
+        /// <summary>
+        /// Generates a unique save name for clarity in case of user using non-unique save names. If name is already unique, it is returned without changes.
+        /// </summary>
+        /// <param name="userId">User ID to check for existing saves.</param>
+        /// <param name="desiredName">User inputted save name.</param>
+        /// <returns>A unique save name based on the desired name.</returns>
+        private async Task<string> GenerateUniqueSaveNameAsync(string userId, string desiredName)
+        {
+            // Query for existing names starting with the desired name for this user
+            var potentialConflicts = await _unitOfWork.GameSaves.FindAsync(
+                s => s.UserId == userId &&
+                     s.SaveName.StartsWith(desiredName)
+            );
+
+            var existingNames = potentialConflicts.Select(s => s.SaveName).ToList();
+
+            // Check if the exact desired name is already taken
+            if (!existingNames.Contains(desiredName))
+            {
+                return desiredName;
+            }
+
+            // If the exact name exists, find the highest number suffix used
+            int maxNumber = 0;
+            string baseNamePattern = Regex.Escape(desiredName) + @" \((\d+)\)$"; // Regex to find " (N)" at the end
+
+            foreach (string name in existingNames)
+            {
+                Match match = Regex.Match(name, baseNamePattern);
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int number))
+                {
+                    if (number > maxNumber)
+                    {
+                        maxNumber = number;
+                    }
+                }
+            }
+
+            // Return the desired name with the next available number
+            return $"{desiredName} ({maxNumber + 1})";
         }
     }
 }
