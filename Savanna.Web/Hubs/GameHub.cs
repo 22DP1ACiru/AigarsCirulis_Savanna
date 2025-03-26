@@ -134,8 +134,8 @@ namespace Savanna.Web.Hubs
             try
             {
                 // Call the core service to handle saving
-                await _gameSaveService.SaveGameState(sessionId, saveName, user.Id);
-                await Clients.Caller.SendAsync("SaveStatus", $"Game '{saveName}' saved successfully!", true);
+                string finalSaveName = await _gameSaveService.SaveGameState(sessionId, saveName, user.Id);
+                await Clients.Caller.SendAsync("SaveStatus", $"Game '{finalSaveName}' saved successfully!", true);
             }
             catch (Exception ex)
             {

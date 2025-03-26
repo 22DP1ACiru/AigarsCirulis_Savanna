@@ -7,7 +7,7 @@ namespace Savanna.Core.Interfaces
         /// <summary>
         /// Saves the current state of a game session. 
         /// </summary>
-        Task SaveGameState(string sessionId, string saveName, string userId);
+        Task<string> SaveGameState(string sessionId, string saveName, string userId);
 
         /// <summary>
         /// Gets metadata for all saves belonging to a user.\

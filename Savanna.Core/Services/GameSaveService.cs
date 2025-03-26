@@ -49,7 +49,7 @@ namespace Savanna.Core.Services
         /// <summary>
         /// Saves the current state of a given game session to the database.
         /// </summary>
-        public async Task SaveGameState(string sessionId, string saveName, string userId)
+        public async Task<string> SaveGameState(string sessionId, string saveName, string userId)
         {
             _logger?.LogInformation("Attempting to save game state for Session: {SessionId}, User: {UserId}, Proposed Name: {SaveName}", sessionId, userId, saveName); 
             
@@ -87,6 +87,8 @@ namespace Savanna.Core.Services
                 // Persist changes to the database asynchronously
                 int recordsAffected = await _unitOfWork.CompleteAsync();
                 _logger?.LogInformation("Game state saved successfully. {RecordsAffected} records affected. Session: {SessionId}, User: {UserId}, Save ID: {SaveId}", recordsAffected, sessionId, userId, gameSave.Id);
+
+                return finalSaveName;
             }
             catch (Exception ex)
             {
