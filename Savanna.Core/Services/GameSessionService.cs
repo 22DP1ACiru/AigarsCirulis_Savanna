@@ -27,7 +27,6 @@ namespace Savanna.Core.Services
 
         public void UpdateAllSessions()
         {
-            // Consider parallel update? Be careful with Engine thread-safety if so.
             foreach (var session in _sessions.Values)
             {
                 session.Engine.Update();
