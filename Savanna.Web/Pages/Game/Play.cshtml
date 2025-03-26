@@ -14,33 +14,40 @@
 {
     <h2 class="mb-3">Savanna Game <small class="text-muted fs-6">- Session: @Model.SessionId</small></h2>
 
-    @* Container for the game grid *@
-    <div id="gameGrid" class="game-grid mb-3">
-        <p>Loading game grid...</p>
+    <div class="d-flex flex-row align-items-start mb-3">
+        @* Container for the game grid *@
+        <div id="gameGrid" class="game-grid me-4">
+            <p>Loading game grid...</p>
+        </div>
+
+        <div class="game-controls">
+            <h5>Controls</h5>
+            <div class="mb-2">
+                <button onclick="addAnimal('Antelope')" class="btn btn-outline-success btn-sm d-block w-100 mb-1">Add Antelope (A)</button>
+            </div>
+            <div class="mb-2">
+                <button onclick="addAnimal('Lion')" class="btn btn-outline-danger btn-sm d-block w-100 mb-1">Add Lion (L)</button>
+            </div>
+            <hr />
+            <div class="mb-2">
+                <button onclick="resetGame()" class="btn btn-secondary btn-sm d-block w-100">Reset Game</button>
+            </div>
+            <hr />
+            <div>
+                <h5>Game Info</h5>
+                @* Element to display iteration count *@
+                <p class="mb-0">Iteration: <span id="iterationCount" class="fw-bold">0</span></p>
+            </div>
+        </div>
     </div>
 
-    <div class="row mb-3">
-        @* Controls for adding animals *@
-        <div class="col-auto">
-            <button onclick="addAnimal('Antelope')" class="btn btn-outline-success btn-sm">Add Antelope (A)</button>
-        </div>
-        <div class="col-auto">
-            <button onclick="addAnimal('Lion')" class="btn btn-outline-danger btn-sm">Add Lion (L)</button>
-        </div>
-        <div class="col-auto ms-auto">
-            <button onclick="resetGame()" class="btn btn-secondary btn-sm">Reset Game</button>
-        </div>
-    </div>
-
-    @* Section for Saving the Game *@
     <div>
         <h5>Save Game</h5>
-        <div class="input-group mb-1" style="max-width: 450px;">
+        <div class="input-group mb-1" style="max-width: 600px;">
             <span class="input-group-text">Save Name:</span>
             <input type="text" id="saveGameName" class="form-control" placeholder="Enter a name for your save..." aria-label="Save game name">
             <button class="btn btn-primary" type="button" onclick="saveGame()">Save Current State</button>
         </div>
-        @* Area to display save status messages from SignalR *@
         <div id="saveStatus" class="form-text mb-3" style="min-height: 1.2em;"></div>
     </div>
 
@@ -63,6 +70,7 @@
         const gameGridElement = document.getElementById('gameGrid');
         const saveStatusElement = document.getElementById('saveStatus');
         const saveNameInput = document.getElementById('saveGameName');
+        const iterationCountElement = document.getElementById('iterationCount');
 
         // --- Functions ---
 
@@ -110,10 +118,28 @@
              showSaveStatus("Connection error. Please refresh.", false); // Inform user
         }
 
+        // Update iteration count display
+        function updateIterationCount(count) {
+            if (iterationCountElement) {
+                // Ensure count is a number or can be reasonably displayed
+                iterationCountElement.textContent = (typeof count === 'number') ? count : '-';
+            } else {
+                console.warn("Iteration count element not found (#iterationCount)");
+            }
+        }
+
+
         // --- SignalR Event Handlers ---
-        connection.on("ReceiveUpdate", updateGridDisplay);
+        connection.on("ReceiveUpdate", (updatePayload) => { // Parameter is the payload object
+            if (updatePayload) {
+                // Extract data from the payload
+                updateGridDisplay(updatePayload.grid); // Pass grid to grid display function
+                updateIterationCount(updatePayload.iterationCount); // Pass count to iteration display function
+            } else {
+                console.warn("Received empty or null update payload.");
+            }
+        });
         connection.on("SaveStatus", showSaveStatus);
-        // Optional: Handle specific errors from the hub
         // connection.on("Error", (errorMessage) => { alert(`Server Error: ${errorMessage}`); });
 
         // --- SignalR Connection Logic ---
@@ -221,6 +247,10 @@
             justify-content: center;
             font-size: 16px;
             font-weight: bold;
+        }
+
+        .game-controls {
+            min-width: 180px;
         }
     </style>
 

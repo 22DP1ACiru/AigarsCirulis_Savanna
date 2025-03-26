@@ -6,6 +6,7 @@ using Savanna.Backend.Models;
 using Savanna.Core.Interfaces;
 using Savanna.Core.Models;
 using Savanna.Data.Entities;
+using Savanna.Web.Utils;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Savanna.Web.Hubs
@@ -53,7 +54,6 @@ namespace Savanna.Web.Hubs
         public async Task JoinSession(string sessionId)
         {
             var (user, session, isAuthorized) = await AuthorizeSessionAction(sessionId);
-
             if (!isAuthorized)
             {
                 _logger.LogWarning("JoinSession denied for User: {UserId}, Session: {SessionId}", user?.Id, sessionId);
@@ -63,14 +63,23 @@ namespace Savanna.Web.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, sessionId);
             _logger.LogInformation("Client {ConnectionId} joined session group {SessionId}", Context.ConnectionId, sessionId);
 
+            // Send the initial state immediately upon joining
             try
             {
-                var grid = ConvertToJaggedArray(session.Engine.GetDisplayGrid());
-                await Clients.Caller.SendAsync("ReceiveUpdate", grid);
+                var grid = session.Engine.GetDisplayGrid();
+                var iterationCount = session.Engine.IterationCount;
+
+                var initialPayload = new
+                {
+                    Grid = grid.ToJaggedArray(),
+                    IterationCount = iterationCount
+                };
+
+                await Clients.Caller.SendAsync("ReceiveUpdate", initialPayload);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending initial grid state for Session {SessionId}", sessionId);
+                _logger.LogError(ex, "Error sending initial state for Session {SessionId}", sessionId);
             }
         }
 
@@ -156,10 +165,18 @@ namespace Savanna.Web.Hubs
 
             try
             {
-                session.InitializeNewGame();
-                var grid = ConvertToJaggedArray(session.Engine.GetDisplayGrid());
+                session.InitializeNewGame(); // Initialize the game engine
 
-                await Clients.Group(sessionId).SendAsync("ReceiveUpdate", grid);
+                var grid = session.Engine.GetDisplayGrid();
+                var iterationCount = session.Engine.IterationCount;
+
+                var resetPayload = new
+                {
+                    Grid = grid.ToJaggedArray(),
+                    IterationCount = iterationCount
+                };
+
+                await Clients.Group(sessionId).SendAsync("ReceiveUpdate", resetPayload);
                 _logger.LogDebug("Reset completed and update sent for session {SessionId}", sessionId);
             }
             catch (Exception ex)
@@ -180,30 +197,6 @@ namespace Savanna.Web.Hubs
                 _logger.LogInformation("Client {ConnectionId} disconnected.", Context.ConnectionId);
             }
             await base.OnDisconnectedAsync(exception);
-        }
-
-        // Helper to convert char[,] to char[][] (Jagged Array for JS)
-        private char[][] ConvertToJaggedArray(char[,] multiArray)
-        {
-            if (multiArray == null || multiArray.Rank != 2 || multiArray.Length == 0)
-            {
-                _logger.LogWarning("ConvertToJaggedArray received null or invalid array.");
-                return Array.Empty<char[]>();
-            }
-
-            int width = multiArray.GetLength(0);
-            int height = multiArray.GetLength(1);
-            char[][] jaggedArray = new char[height][]; // Outer array represents rows (Y)
-
-            for (int y = 0; y < height; y++) // Iterate rows (Y)
-            {
-                jaggedArray[y] = new char[width]; // Inner array represents columns (X)
-                for (int x = 0; x < width; x++) // Iterate columns (X)
-                {
-                    jaggedArray[y][x] = multiArray[x, y]; // Access multiArray as [x, y]
-                }
-            }
-            return jaggedArray;
         }
     }
 }
