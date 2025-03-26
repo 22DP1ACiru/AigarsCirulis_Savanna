@@ -184,12 +184,20 @@
 
         protected virtual void CreateOffspring()
         {
-            // Find an empty adjacent position
-            Position birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
+            Position birthPosition = null;
+
+            try
+            {
+                birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
+            }
+            catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
+            {
+                Console.WriteLine($"[INFO] Animal {Symbol} at {Position} could not create offspring: {ioex.Message}");
+                birthPosition = null;
+            }
 
             if (birthPosition != null)
             {
-                // Create offspring at the empty adjacent position
                 IAnimal offspring = Birth(birthPosition);
                 GameEngineMediator.Instance.RequestAnimalCreation(offspring);
             }
