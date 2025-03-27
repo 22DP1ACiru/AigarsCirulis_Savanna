@@ -61,7 +61,17 @@
         /// <returns>A random empty position.</returns>
         public Position GetRandomEmptyPosition()
         {
+            int maxCells = Width * Height;
+
+            // Check if grid is full
+            if (_animals.Count(a => a.IsAlive) >= maxCells)
+            {
+                throw new InvalidOperationException("Cannot find empty position: Grid is full.");
+            }
+
             Position position;
+            int attempts = 0;
+            const int maxAttempts = 1000; // Limit attempts to prevent hangs in nearly full grids
 
             do
             {
@@ -69,7 +79,14 @@
                     _random.Next(0, Width),
                     _random.Next(0, Height)
                 );
-            } while (IsPositionOccupied(position));
+                attempts++;
+            } while (IsPositionOccupied(position) && attempts < maxAttempts);
+
+            if (attempts >= maxAttempts && IsPositionOccupied(position))
+            {
+                // Even after many attempts, couldn't find empty spot (highly likely grid is full or near full)
+                throw new InvalidOperationException($"Cannot find empty position after {maxAttempts} attempts. Grid may be full or near full.");
+            }
 
             return position;
         }

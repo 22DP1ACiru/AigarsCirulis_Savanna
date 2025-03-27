@@ -8,7 +8,7 @@ namespace Savanna.Plugins.Zebra
 {
     public class ZebraPlugin : IAnimalPlugin
     {
-        public string AnimalType => "Zebra";
+        public string AnimalType => typeof(Zebra).Name;
 
         public IAnimal CreateAnimal(Position position)
         {

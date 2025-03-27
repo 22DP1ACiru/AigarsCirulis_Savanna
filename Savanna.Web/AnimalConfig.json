@@ -1,0 +1,24 @@
+{
+  "DefaultVisionRange": 4,
+  "HealthDrainPerMove": 0.5,
+  "ReproductionProximityCounter": 3,
+  "ReproductionRange": 1.5,
+  "Animals": {
+    "Antelope": {
+      "VisionRange": 6,
+      "MovementSpeed": 1,
+      "Symbol": "A",
+      "MaxHealth": 10.0,
+      "PowerLevel": 1,
+      "GrazingThresholdPercentage": 0.5
+    },
+    "Lion": {
+      "VisionRange": 5,
+      "MovementSpeed": 2,
+      "Symbol": "L",
+      "MaxHealth": 15.0,
+      "PowerLevel": 2,
+      "DigestionTime": 2
+    }
+  }
+}

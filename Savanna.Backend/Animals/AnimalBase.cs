@@ -5,12 +5,15 @@
     using Savanna.Backend.Configuration;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
+    using Savanna.Backend.Models.State;
 
     public abstract class AnimalBase : IAnimal, IKillable
     {
         protected readonly Random Random = new Random();
         private readonly Dictionary<IAnimal, int> _proximityCounter = new Dictionary<IAnimal, int>();
         protected static readonly ConfigurationService _configService = ConfigurationService.Instance;
+
+        public virtual string AnimalTypeName => this.GetType().Name;
 
         public Position Position { get; set; }
         public abstract char Symbol { get; }
@@ -30,6 +33,31 @@
         {
             Position = position;
             Health = MaxHealth;
+        }
+
+        public virtual AnimalStateDto GetState()
+        {
+            return new AnimalStateDto
+            {
+                AnimalType = this.AnimalTypeName,
+                Position = this.Position,
+                Health = this.Health,
+                IsAlive = this.IsAlive
+            };
+        }
+
+        public virtual void LoadState(AnimalStateDto state)
+        {
+            if (state.AnimalType != this.AnimalTypeName)
+            {
+                throw new InvalidOperationException($"Cannot load state of type {state.AnimalType} into {this.AnimalTypeName}");
+            }
+
+            this.Position = state.Position;
+            this.Health = Math.Clamp(state.Health, 0, this.MaxHealth); // Ensure health is valid
+            this.IsAlive = state.IsAlive;
+
+            _proximityCounter.Clear();
         }
 
         public virtual void Move(Direction direction)
@@ -86,7 +114,8 @@
         {
             List<IAnimal> visibleAnimals = new List<IAnimal>();
 
-            foreach (var animal in animals)
+            // Iterate over a copy to prevent modification during enumeration
+            foreach (var animal in animals.ToList())
             {
                 if (animal == this) continue;
 
@@ -96,7 +125,6 @@
                     visibleAnimals.Add(animal);
                 }
             }
-
             return visibleAnimals;
         }
 
@@ -105,6 +133,7 @@
         public void Kill()
         {
             IsAlive = false;
+            Health = 0;
         }
 
         protected virtual void CheckNearbyAnimalsForBirth(List<IAnimal> animals)
@@ -155,12 +184,20 @@
 
         protected virtual void CreateOffspring()
         {
-            // Find an empty adjacent position
-            Position birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
+            Position birthPosition = null;
+
+            try
+            {
+                birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
+            }
+            catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
+            {
+                Console.WriteLine($"[INFO] Animal {Symbol} at {Position} could not create offspring: {ioex.Message}");
+                birthPosition = null;
+            }
 
             if (birthPosition != null)
             {
-                // Create offspring at the empty adjacent position
                 IAnimal offspring = Birth(birthPosition);
                 GameEngineMediator.Instance.RequestAnimalCreation(offspring);
             }

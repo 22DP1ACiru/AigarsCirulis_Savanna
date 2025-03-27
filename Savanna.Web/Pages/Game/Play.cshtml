@@ -1,0 +1,108 @@
+﻿@page "/Game/{sessionId}"
+@model Savanna.Web.Pages.Game.PlayModel
+@using Savanna.Backend.Constants;
+
+@{
+    ViewData["Title"] = "Savanna Game";
+    var gridWidth = GameConstants.GridWidth;
+    var gridHeight = GameConstants.GridHeight;
+    var cellChar = GameConstants.EmptyCellSymbol.ToString();
+}
+
+@* Only render the game interface if the session is valid *@
+@if (Model.IsValidSession)
+{
+    <h2 class="mb-3">Savanna Game <small class="text-muted fs-6">- Session: @Model.SessionId</small></h2>
+
+    <div class="d-flex flex-row align-items-start mb-3">
+        @* Container for the game grid *@
+        <div id="gameGrid" 
+             class="game-grid me-4"
+             data-session-id="@Model.SessionId"
+             data-empty-char="@cellChar">
+            <p>Loading game grid...</p>
+        </div>
+
+        <div class="game-controls">
+            <h5>Controls</h5>
+            <div class="mb-2">
+                <button id="btnAddAntelope" class="btn btn-outline-success btn-sm d-block w-100 mb-1">Add Antelope (A)</button>
+            </div>
+            <div class="mb-2">
+                <button id="btnAddLion" class="btn btn-outline-danger btn-sm d-block w-100 mb-1">Add Lion (L)</button>
+            </div>
+            <hr />
+            <div class="mb-2">
+                <button id="btnResetGame" class="btn btn-secondary btn-sm d-block w-100">Reset Game</button>
+            </div>
+            <hr />
+            <div>
+                <h5>Game Info</h5>
+                <p class="mb-0">Iteration: <span id="iterationCount" class="fw-bold">0</span></p>
+                <p class="mb-0">Animals Alive: <span id="animalCount" class="fw-bold">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h5>Save Game</h5>
+        <div class="input-group mb-1" style="max-width: 600px;">
+            <span class="input-group-text">Save Name:</span>
+            <input type="text" id="saveGameName" class="form-control" placeholder="Enter a name for your save..." aria-label="Save game name">
+            <button id="btnSaveGame" class="btn btn-primary" type="button">Save Current State</button>
+        </div>
+        <div id="saveStatus" class="form-text mb-3" style="min-height: 1.2em;"></div>
+    </div>
+
+    @* Include SignalR client library *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script src="~/js/game-play.js" type="module" asp-append-version="true"></script>
+
+    <style>
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat( @gridWidth, 28px); /* Adjust cell size */
+            gap: 0;
+            font-family: Consolas, monospace;
+            line-height: 1; /* Prevent extra spacing */
+            margin-bottom: 1em;
+            background-color: #f0f0f0; /* Light background for the grid area */
+            border: 1px solid #ccc;
+            width: fit-content; /* Grid only as wide as needed */
+            padding: 2px; /* Small padding around cells */
+        }
+
+        .game-row {
+            display: contents;
+        }
+
+        .game-cell {
+            width: 28px; /* Match grid column size */
+            height: 28px; /* Match grid column size */
+            background-color: #fff; /* Cell background */
+            text-align: center;
+            /* Vertically center content */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            border: 1px solid #eee;
+            position: relative;
+            z-index: 0;
+        }
+
+        .game-controls {
+            min-width: 180px;
+        }
+    </style>
+
+}
+else // Render this block if Model.IsValidSession is false
+{
+    <div class="alert alert-danger">
+        <h4>Access Denied</h4>
+        <p>@(Model.ErrorMessage ?? "An error occurred while trying to access this game session.")</p>
+    </div>
+    <a asp-page="Index" class="btn btn-secondary">Return to Dashboard</a>
+}
