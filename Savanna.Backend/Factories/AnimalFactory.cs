@@ -2,6 +2,7 @@
 using Savanna.Backend.Models.State;
 using Savanna.Backend.Animals;
 using Savanna.Backend.Plugins;
+using Savanna.Backend.Constants;
 
 namespace Savanna.Backend.Factories
 {
@@ -13,7 +14,7 @@ namespace Savanna.Backend.Factories
         {
             if (state == null || string.IsNullOrEmpty(state.AnimalType))
             {
-                Console.WriteLine("[AnimalFactory] Warning: CreateAnimalFromState called with null or invalid state.");
+                Console.WriteLine(LoggingConstants.AnimalFactoryWarningInvalidState);
                 return null;
             }
 
@@ -40,7 +41,7 @@ namespace Savanna.Backend.Factories
                     }
                     else
                     {
-                        Console.WriteLine($"[AnimalFactory] Warning: No built-in type or registered plugin found for animal type '{state.AnimalType}'.");
+                        Console.WriteLine(string.Format(LoggingConstants.AnimalFactoryWarningTypeNotFound, state.AnimalType));
                         return null;
                     }
                 }
@@ -52,7 +53,7 @@ namespace Savanna.Backend.Factories
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AnimalFactory] Error during creation or state loading for animal type '{state.AnimalType}'. Error: {ex.Message}");
+                Console.WriteLine(string.Format(LoggingConstants.AnimalFactoryErrorCreatingState, state.AnimalType, ex.Message));
                 return null;
             }
 
