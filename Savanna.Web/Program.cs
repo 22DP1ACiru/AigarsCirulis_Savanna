@@ -8,6 +8,7 @@ using Savanna.Backend.Interfaces;
 using Savanna.Backend.Factories;
 using Savanna.Web.Hubs;
 using Savanna.Web.Services;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
