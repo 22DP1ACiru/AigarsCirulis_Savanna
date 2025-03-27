@@ -216,13 +216,11 @@
 
     </script>
 
-    @* Basic CSS for the grid - adjust as needed *@
     <style>
         .game-grid {
             display: grid;
-            /* Use CSS variables or directly set based on constants */
             grid-template-columns: repeat( @gridWidth, 28px); /* Adjust cell size */
-            gap: 1px;
+            gap: 0;
             font-family: Consolas, monospace;
             line-height: 1; /* Prevent extra spacing */
             margin-bottom: 1em;
@@ -233,7 +231,7 @@
         }
 
         .game-row {
-            display: contents; /* Important for direct cell participation in grid */
+            display: contents;
         }
 
         .game-cell {
@@ -247,6 +245,9 @@
             justify-content: center;
             font-size: 16px;
             font-weight: bold;
+            border: 1px solid #eee;
+            position: relative;
+            z-index: 0;
         }
 
         .game-controls {
