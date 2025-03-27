@@ -10,6 +10,7 @@ const gameGridElement = document.getElementById('gameGrid');
 const saveStatusElement = document.getElementById('saveStatus');
 const saveNameInput = document.getElementById('saveGameName');
 const iterationCountElement = document.getElementById('iterationCount');
+const animalCountElement = document.getElementById('animalCount');
 
 // --- Get Razor values from data attributes ---
 const sessionId = gameGridElement.dataset.sessionId; // Read data-session-id
@@ -84,6 +85,15 @@ function updateIterationCount(count) {
     }
 }
 
+// Update animal count display
+function updateAnimalCount(count) {
+    if (animalCountElement) {
+        animalCountElement.textContent = (typeof count === 'number') ? count : '-';
+    } else {
+        console.warn("Animal count element not found (#animalCount)");
+    }
+}
+
 // --- SignalR Event Handlers ---
 
 connection.on("ReceiveUpdate", (updatePayload) => { // Parameter is the payload object
@@ -91,6 +101,7 @@ connection.on("ReceiveUpdate", (updatePayload) => { // Parameter is the payload 
         // Extract data from the payload
         updateGridDisplay(updatePayload.grid); // Pass grid to grid display function
         updateIterationCount(updatePayload.iterationCount); // Pass count to iteration display function
+        updateAnimalCount(updatePayload.livingAnimalCount); // Pass count to animal count display function
     } else {
         console.warn("Received empty or null update payload.");
     }

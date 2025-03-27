@@ -66,13 +66,15 @@ namespace Savanna.Web.Hubs
             // Send the initial state immediately upon joining
             try
             {
-                var grid = session.Engine.GetDisplayGrid();
+                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
                 var iterationCount = session.Engine.IterationCount;
+                var livingAnimalCount = session.Engine.LivingAnimalCount;
 
                 var initialPayload = new
                 {
-                    Grid = grid.ToJaggedArray(),
-                    IterationCount = iterationCount
+                    Grid = grid,
+                    IterationCount = iterationCount,
+                    LivingAnimalCount = livingAnimalCount
                 };
 
                 await Clients.Caller.SendAsync("ReceiveUpdate", initialPayload);
@@ -167,13 +169,15 @@ namespace Savanna.Web.Hubs
             {
                 session.InitializeNewGame(); // Initialize the game engine
 
-                var grid = session.Engine.GetDisplayGrid();
+                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
                 var iterationCount = session.Engine.IterationCount;
+                var livingAnimalCount = session.Engine.LivingAnimalCount;
 
                 var resetPayload = new
                 {
-                    Grid = grid.ToJaggedArray(),
-                    IterationCount = iterationCount
+                    Grid = grid,
+                    IterationCount = iterationCount,
+                    LivingAnimalCount = livingAnimalCount
                 };
 
                 await Clients.Group(sessionId).SendAsync("ReceiveUpdate", resetPayload);

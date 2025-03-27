@@ -45,13 +45,15 @@ namespace Savanna.Web.Services
                         {
                             try
                             {
-                                var grid = session.Engine.GetDisplayGrid();
+                                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
                                 var iterationCount = session.Engine.IterationCount;
+                                var livingAnimalCount = session.Engine.LivingAnimalCount;
 
                                 var updatePayload = new
                                 {
-                                    Grid = grid.ToJaggedArray(),
-                                    IterationCount = iterationCount
+                                    Grid = grid,
+                                    IterationCount = iterationCount,
+                                    LivingAnimalCount = livingAnimalCount
                                 };
 
                                 await _hubContext.Clients.Group(sessionId)

@@ -43,6 +43,7 @@
                 <tr>
                     <th>Save Name</th>
                     <th>Iteration</th>
+                    <th>Animals</th>
                     <th>Save Date</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -53,6 +54,7 @@
                     <tr>
                         <td>@Html.DisplayFor(modelItem => save.SaveName)</td>
                         <td>@Html.DisplayFor(modelItem => save.IterationCount)</td>
+                        <td>@Html.DisplayFor(modelItem => save.LivingAnimalCount)</td>
                         <td>@save.SaveDate.ToLocalTime().ToString("g")</td> @* Display in local time *@
                         <td class="text-end">
                             @* Form to trigger the LoadGame handler *@
