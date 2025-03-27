@@ -6,6 +6,7 @@ using Savanna.Backend.Models.State;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Savanna.Core.Services
 {
@@ -13,12 +14,12 @@ namespace Savanna.Core.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGameSessionService _sessionService;
-        private readonly ILogger<GameSaveService> _logger; // Logger is optional
+        private readonly ILogger<GameSaveService> _logger;
 
         public GameSaveService(
             IUnitOfWork unitOfWork,
             IGameSessionService sessionService,
-            ILogger<GameSaveService> logger = null) // Make logger optional if not always provided via DI
+            ILogger<GameSaveService> logger = null)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
@@ -37,7 +38,7 @@ namespace Savanna.Core.Services
 
                 return saves
                     .OrderByDescending(s => s.SaveDate)
-                    .Select(s => new GameSaveDto(s.Id, s.SaveName, s.Iteration, s.SaveDate));
+                    .Select(s => new GameSaveDto(s.Id, s.SaveName, s.Iteration, s.LivingAnimalCount, s.SaveDate));
             }
             catch (Exception ex)
             {
@@ -79,6 +80,7 @@ namespace Savanna.Core.Services
                     SaveName = finalSaveName,
                     GameState = serializedState,
                     Iteration = gameState.IterationCount,
+                    LivingAnimalCount = gameState.LivingAnimalCount,
                     SaveDate = DateTime.UtcNow
                 };
 

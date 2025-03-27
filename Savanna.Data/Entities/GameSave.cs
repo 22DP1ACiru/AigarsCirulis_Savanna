@@ -18,7 +18,9 @@ namespace Savanna.Data.Entities
         [Required]
         public string GameState { get; set; } // Serialized JSON
 
-        public int Iteration { get; set; }      
+        public int Iteration { get; set; }
+
+        public int LivingAnimalCount { get; set; }
 
         public DateTime SaveDate { get; set; }
 
