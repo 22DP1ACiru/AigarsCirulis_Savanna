@@ -5,6 +5,22 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Welcome to Savanna Web!</h1>
+    <p class="lead">Experience the Savanna simulation in your browser.</p>
+
+    <hr class="my-4">
+
+    @if (Model.IsUserLoggedIn)
+    {
+        <p>You are logged in.</p>
+        <a class="btn btn-primary btn-lg" asp-page="/Game/Index">Go to Game Dashboard</a>
+    }
+    else
+    {
+        <p>Please log in or register to play.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a class="btn btn-primary btn-lg px-4 gap-3" asp-area="Identity" asp-page="/Account/Login">Login</a>
+            <a class="btn btn-outline-secondary btn-lg px-4" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </div>
+    }
 </div>
