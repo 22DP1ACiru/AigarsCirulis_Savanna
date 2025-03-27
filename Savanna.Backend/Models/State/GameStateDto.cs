@@ -4,5 +4,7 @@
     {
         public int IterationCount { get; set; }
         public List<AnimalStateDto> Animals { get; set; } = new List<AnimalStateDto>();
+
+        public int LivingAnimalCount { get; set; }
     }
 }

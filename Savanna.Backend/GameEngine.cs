@@ -19,6 +19,16 @@
         private readonly IAnimalFactory _animalFactory;
 
         public int IterationCount { get; private set; }
+        public int LivingAnimalCount
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _animals.Count(a => a.IsAlive);
+                }
+            }
+        }
 
         public GameEngine(IAnimalFactory animalFactory) 
         {
@@ -157,7 +167,8 @@
                 var gameState = new GameStateDto
                 {
                     IterationCount = this.IterationCount,
-                    Animals = _animals.Select(a => a.GetState()).ToList()   
+                    Animals = _animals.Select(a => a.GetState()).ToList(),
+                    LivingAnimalCount = _animals.Count(a => a.IsAlive)
                 };
                 return gameState;
             }
