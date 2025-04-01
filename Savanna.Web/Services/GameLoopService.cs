@@ -10,7 +10,7 @@ namespace Savanna.Web.Services
         private readonly IGameSessionService _sessionService;
         private readonly IHubContext<GameHub> _hubContext;
         private readonly ILogger<GameLoopService> _logger;
-        private readonly TimeSpan _tickDelay = TimeSpan.FromMilliseconds(500);
+        private readonly TimeSpan _tickDelay = TimeSpan.FromMilliseconds(1000);
 
         public GameLoopService(
             IGameSessionService sessionService,
