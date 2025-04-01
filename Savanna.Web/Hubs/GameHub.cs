@@ -8,6 +8,8 @@ using Savanna.Core.Models;
 using Savanna.Data.Entities;
 using Savanna.Web.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Savanna.Backend.Configuration;
+using Savanna.Backend.Plugins;
 
 namespace Savanna.Web.Hubs
 {
@@ -46,6 +48,54 @@ namespace Savanna.Web.Hubs
             }
 
             return (user, session, isAuthorized);
+        }
+
+        /// <summary>
+        /// Client calls this to get the current symbol-to-icon mapping.
+        /// </summary>
+        /// <returns>A dictionary where Key=Symbol (char), Value=Icon (string).</returns>
+        public Dictionary<char, string> GetDisplayConfig()
+        {
+            _logger.LogInformation("Client requested display configuration.");
+            // Use Singletons directly
+            var configService = ConfigurationService.Instance;
+            var pluginManager = PluginManager.Instance;
+            var displayMap = new Dictionary<char, string>();
+
+            // 1. Add built-in animals from main config
+            if (configService.AnimalConfig?.Animals != null)
+            {
+                foreach (var kvp in configService.AnimalConfig.Animals)
+                {
+                    var config = kvp.Value;
+                    // Check symbol and non-empty icon
+                    if (config.Symbol != default(char) && !string.IsNullOrEmpty(config.Icon))
+                    {
+                        displayMap[config.Symbol] = config.Icon;
+                    }
+                }
+            }
+
+            // 2. Add registered plugin animals
+            // Iterate through the plugins registered *successfully* in PluginManager
+            foreach (var kvp in pluginManager.RegisteredPlugins) // Key is Symbol, Value is IAnimalPlugin
+            {
+                char symbol = kvp.Key;
+                IAnimalPlugin plugin = kvp.Value;
+
+                // Get the config associated with this specific plugin instance
+                // (which should be the same one registered in ConfigurationService)
+                var pluginConfig = plugin.GetAnimalConfig(); // Or use configService.GetAnimalConfig(plugin.AnimalType)
+
+                // Ensure it has an icon and hasn't already been added (redundant check, but safe)
+                if (pluginConfig != null && !string.IsNullOrEmpty(pluginConfig.Icon) && !displayMap.ContainsKey(symbol))
+                {
+                    displayMap[symbol] = pluginConfig.Icon;
+                }
+            }
+
+            _logger.LogDebug("Returning display config map with {Count} entries.", displayMap.Count);
+            return displayMap;
         }
 
         /// <summary>

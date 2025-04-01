@@ -15,6 +15,7 @@ const saveStatusElement = document.getElementById(Const.DOM_ID_SAVE_STATUS);
 const saveNameInput = document.getElementById(Const.DOM_ID_SAVE_NAME_INPUT);
 const iterationCountElement = document.getElementById(Const.DOM_ID_ITERATION_COUNT);
 const animalCountElement = document.getElementById(Const.DOM_ID_ANIMAL_COUNT);
+const btnDisplayMode = document.getElementById('btnDisplayMode');
 
 // --- Get Razor values from data attributes ---
 const sessionId = gameGridElement.dataset.sessionId;
@@ -24,11 +25,16 @@ const emptyCellChar = gameGridElement.dataset.emptyChar;
 let currentIteration = 0;
 let lastSavedIteration = -1;
 let isInitialLoad = true;
+let useIcons = false;
+let animalIcons = {};
+let currentGridData = [];
 
 // --- Functions ---
 
 // Update the visual game grid based on data from server
 function updateGridDisplay(grid) {
+    currentGridData = grid; // Store latest grid
+
     if (!gameGridElement) return;
     if (!grid || grid.length === 0 || grid[0].length === 0) {
         gameGridElement.innerHTML = Const.MSG_WAITING_DATA;
@@ -39,16 +45,35 @@ function updateGridDisplay(grid) {
     const height = grid.length;    // Number of rows (y)
     const width = grid[0].length; // Number of columns (x)
 
-    for (let y = 0; y < height; y++) {
+    for(let y = 0; y < height; y++) {
         html += '<div class="game-row">';
         const row = grid[y];
+        if (!row || row.length !== width) { console.error(/*...*/); html += '</div>'; continue; }
+            
         for (let x = 0; x < width; x++) {
-            const cellContent = (row[x] && row[x] !== emptyCellChar) ? row[x] : ' '; // Use nbsp for spacing
-            html += `<div class="game-cell">${cellContent}</div>`;
+            const symbol = row[x]; // Get the character symbol
+            let displayContent = ' '; // Default empty
+
+            if (symbol && symbol !== emptyCellChar) {
+                if (useIcons && animalIcons[symbol]) { // <<< Check useIcons and if icon exists
+                    displayContent = animalIcons[symbol]; // <<< Use icon from map
+                } else {
+                    displayContent = symbol; // <<< Use letter symbol as fallback or default
+                }
+                // --- END FIX ---
+            }
+            // Add data attributes for Feature 2 (Animal Stats)
+                html += `<div class="game-cell" data-x="${x}" data-y="${y}">${displayContent}</div>`;
         }
         html += '</div>';
     }
     gameGridElement.innerHTML = html;
+}
+
+function updateDisplayModeButtonText() {
+    if (btnDisplayMode) {
+        btnDisplayMode.textContent = useIcons ? Const.MSG_SWAP_TO_LETTER_DISPLAY : Const.MSG_SWAP_TO_ICON_DISPLAY ;
+    }
 }
 
 // Display status messages related to saving
@@ -126,8 +151,19 @@ async function startSignalR() {
         await connection.start();
         console.log("SignalR Connected.");
         // Join the specific session group ONCE connected
+
+        try {
+            const configMap = await connection.invoke("GetDisplayConfig");
+            animalIcons = configMap || {}; // Store the fetched map
+            console.log("Display config received:", animalIcons); // <<< CHECK THIS LOG
+        } catch (err) {
+            console.error("Error fetching display config:", err);
+        }
+
         await connection.invoke("JoinSession", sessionId);
         console.log(`Joined session group: ${sessionId}`);
+
+        updateDisplayModeButtonText();  
     } catch (err) {
         handleConnectionError(err);
     }
@@ -222,6 +258,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
     if (btnSaveGame) {
         btnSaveGame.addEventListener('click', saveGame);
+    }
+
+    if (btnDisplayMode) {
+        btnDisplayMode.addEventListener('click', () => {
+            useIcons = !useIcons;
+            updateDisplayModeButtonText();
+            updateGridDisplay(currentGridData);
+            console.log(`Display mode changed. Use icons: ${useIcons}`);
+        });
+    } else {
+        console.warn("Display mode button element not found.");
     }
 
     startSignalR(); // Start the connection when the page loads

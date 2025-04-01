@@ -2,6 +2,7 @@
   "VisionRange": 4,
   "MovementSpeed": 2,
   "Symbol": "H",
+  "Icon": "🐕",
   "MaxHealth": 13.0,
   "PowerLevel": 1,
   "DigestionTime": 3

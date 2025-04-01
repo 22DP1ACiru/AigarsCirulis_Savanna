@@ -11,12 +11,15 @@ export const MSG_SAVE_NAME_EMPTY = "Please enter a name for the save.";
 export const MSG_SAVING = "Saving...";
 export const MSG_SAVE_INIT_ERROR = "Error initiating save: ";
 export const MSG_GRID_OR_SESSION_NOT_FOUND_ERROR = "Cannot initialize page: Game grid element or session ID not found.";
+export const MSG_SWAP_TO_LETTER_DISPLAY = "Switch to using letters";
+export const MSG_SWAP_TO_ICON_DISPLAY = "Switch to using icons";
 
 export const DOM_ID_GAME_GRID = 'gameGrid';
 export const DOM_ID_SAVE_STATUS = 'saveStatus';
 export const DOM_ID_SAVE_NAME_INPUT = 'saveGameName';
 export const DOM_ID_ITERATION_COUNT = 'iterationCount';
 export const DOM_ID_ANIMAL_COUNT = 'animalCount';
+export const DOM_ID_DISPLAY_MODE_BUTTON = 'btnDisplayMode';
 
 export const DEFAULT_COUNT_DISPLAY = '-';
 export const ITERATION_THRESHOLD_FOR_WARNING = 20;

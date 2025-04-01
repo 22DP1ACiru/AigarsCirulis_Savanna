@@ -8,6 +8,7 @@
       "VisionRange": 6,
       "MovementSpeed": 1,
       "Symbol": "A",
+      "Icon": "🦌",
       "MaxHealth": 10.0,
       "PowerLevel": 1,
       "GrazingThresholdPercentage": 0.5
@@ -16,6 +17,7 @@
       "VisionRange": 5,
       "MovementSpeed": 2,
       "Symbol": "L",
+      "Icon": "🦁",
       "MaxHealth": 15.0,
       "PowerLevel": 2,
       "DigestionTime": 2
