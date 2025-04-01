@@ -83,6 +83,15 @@
         /// <returns>Data transfer object representing animal state.</returns>
         AnimalStateDto GetState();
 
+        /// <summary>
+        /// Loads the animal state from animal state.
+        /// </summary>
+        /// <param name="state"></param>
         void LoadState(AnimalStateDto state);
+
+        /// <summary>
+        /// Increments age if animal is alive.
+        /// </summary>
+        void IncrementAge();
     }
 }

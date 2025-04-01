@@ -64,6 +64,11 @@
             {
                 IterationCount++;
 
+                foreach(var animal in _animals)
+                {
+                    animal.IncrementAge();
+                }
+
                 animalsToAct = _animals.Where(a => a.IsAlive).ToList();
                 snapshotForAct = _animals.ToList();
 
