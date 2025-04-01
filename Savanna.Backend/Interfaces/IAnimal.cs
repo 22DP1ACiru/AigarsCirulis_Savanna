@@ -44,6 +44,16 @@
         double Health { get; }
 
         /// <summary>
+        /// Gets the age (iterations survived) of the animal.
+        /// </summary>
+        int Age { get; }
+
+        /// <summary>
+        /// Gets the offspring count of the animal.
+        /// </summary>
+        int OffspringCount { get; }
+
+        /// <summary>
         /// Gets the unique type identifier string.
         /// </summary>
         string AnimalTypeName { get; }

@@ -25,6 +25,8 @@
         public abstract double MaxHealth { get; }
         public abstract int PowerLevel { get; }
         public virtual double HealthDrainPerMove => _configService.AnimalConfig.HealthDrainPerMove;
+        public int Age { get; protected set; } = 0;
+        public int OffspringCount { get; protected set; } = 0;
 
         public int ReproductionProximityCounter => _configService.AnimalConfig.ReproductionProximityCounter;
         public double ReproductionRange => _configService.AnimalConfig.ReproductionRange;
@@ -42,7 +44,9 @@
                 AnimalType = this.AnimalTypeName,
                 Position = this.Position,
                 Health = this.Health,
-                IsAlive = this.IsAlive
+                IsAlive = this.IsAlive,
+                Age = this.Age,
+                OffspringCount = this.OffspringCount
             };
         }
 
@@ -56,6 +60,8 @@
             this.Position = state.Position;
             this.Health = Math.Clamp(state.Health, 0, this.MaxHealth); // Ensure health is valid
             this.IsAlive = state.IsAlive;
+            this.Age = state.Age;
+            this.OffspringCount = state.OffspringCount;
 
             _proximityCounter.Clear();
         }
@@ -200,6 +206,15 @@
             {
                 IAnimal offspring = Birth(birthPosition);
                 GameEngineMediator.Instance.RequestAnimalCreation(offspring);
+                this.OffspringCount++;
+            }
+        }
+
+        public virtual void IncrementAge()
+        {
+            if (this.IsAlive)
+            {
+                this.Age++;
             }
         }
 
