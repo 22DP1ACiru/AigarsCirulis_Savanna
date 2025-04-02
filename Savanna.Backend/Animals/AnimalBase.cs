@@ -15,6 +15,7 @@
 
         public virtual string AnimalTypeName => this.GetType().Name;
 
+        public Guid UniqueId { get; }
         public Position Position { get; set; }
         public abstract char Symbol { get; }
         public virtual int VisionRange => _configService.AnimalConfig.DefaultVisionRange;
@@ -33,6 +34,7 @@
 
         protected AnimalBase(Position position)
         {
+            UniqueId = Guid.NewGuid();  
             Position = position;
             Health = MaxHealth;
         }
@@ -41,6 +43,7 @@
         {
             return new AnimalStateDto
             {
+                UniqueId = this.UniqueId,
                 AnimalType = this.AnimalTypeName,
                 Position = this.Position,
                 Health = this.Health,
@@ -166,6 +169,10 @@
                     // Check if the animals have been together for specified consecutive turns
                     if (_proximityCounter[animal] >= ReproductionProximityCounter)
                     {
+                        // Incrementing offspring counter for both parents
+                        this.IncrementOffspringCount();
+                        animal.IncrementOffspringCount();
+
                         // Only one animal initiates reproduction to avoid duplicate offspring
                         if (GetHashCode() < animal.GetHashCode())
                         {
@@ -206,7 +213,6 @@
             {
                 IAnimal offspring = Birth(birthPosition);
                 GameEngineMediator.Instance.RequestAnimalCreation(offspring);
-                this.OffspringCount++;
             }
         }
 
@@ -216,6 +222,11 @@
             {
                 this.Age++;
             }
+        }
+
+        public virtual void IncrementOffspringCount()
+        {
+            this.OffspringCount++;
         }
 
         protected abstract IAnimal Birth(Position position);

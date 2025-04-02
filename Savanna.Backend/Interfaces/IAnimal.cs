@@ -9,6 +9,11 @@
     public interface IAnimal
     {
         /// <summary>
+        /// Gets the animal's unique ID for tracking.
+        /// </summary>
+        Guid UniqueId { get; }
+
+        /// <summary>
         /// Gets the current position of the animal in the game grid.
         /// </summary>
         Position Position { get; set; }
@@ -93,5 +98,10 @@
         /// Increments age if animal is alive.
         /// </summary>
         void IncrementAge();
+
+        /// <summary>
+        /// Increments offspring count.
+        /// </summary>
+        void IncrementOffspringCount();
     }
 }
