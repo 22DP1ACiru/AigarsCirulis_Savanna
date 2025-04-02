@@ -20,6 +20,7 @@ export const DOM_ID_SAVE_NAME_INPUT = 'saveGameName';
 export const DOM_ID_ITERATION_COUNT = 'iterationCount';
 export const DOM_ID_ANIMAL_COUNT = 'animalCount';
 export const DOM_ID_DISPLAY_MODE_BUTTON = 'btnDisplayMode';
+export const DOM_ID_STATS_DISPLAY = 'animalStatsDisplay';
 
 export const DEFAULT_COUNT_DISPLAY = '-';
 export const ITERATION_THRESHOLD_FOR_WARNING = 20;

@@ -50,8 +50,8 @@
                     </button>
                 </div>
             </div>
+
             <div id="animalStatsDisplay" style="display: none; border: 1px solid #ddd; padding: 10px; margin-top: 15px; background-color: #f9f9f9; border-radius: 4px;">
-                @* Placeholder for animal stats on click (Feature 2) *@
                 Click an animal...
             </div>
         </div>
@@ -69,7 +69,7 @@
 
     @* Include SignalR client library *@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-    <script src="~/js/game-play.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/game/game-play.js" type="module" asp-append-version="true"></script>
 
     <style>
         .game-grid {
@@ -107,6 +107,12 @@
 
         .game-controls {
             min-width: 180px;
+        }
+
+        .game-cell.highlighted {
+            outline: 3px solid blue;
+            outline-offset: -2px;
+            z-index: 10;
         }
     </style>
 

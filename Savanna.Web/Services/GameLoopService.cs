@@ -10,7 +10,7 @@ namespace Savanna.Web.Services
         private readonly IGameSessionService _sessionService;
         private readonly IHubContext<GameHub> _hubContext;
         private readonly ILogger<GameLoopService> _logger;
-        private readonly TimeSpan _tickDelay = TimeSpan.FromMilliseconds(1000);
+        private readonly TimeSpan _tickDelay = TimeSpan.FromMilliseconds(500);
 
         public GameLoopService(
             IGameSessionService sessionService,
@@ -45,19 +45,9 @@ namespace Savanna.Web.Services
                         {
                             try
                             {
-                                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
-                                var iterationCount = session.Engine.IterationCount;
-                                var livingAnimalCount = session.Engine.LivingAnimalCount;
-
-                                var updatePayload = new
-                                {
-                                    Grid = grid,
-                                    IterationCount = iterationCount,
-                                    LivingAnimalCount = livingAnimalCount
-                                };
-
+                                var payload = PayloadUtils.CreateWebPayload(session, _logger);
                                 await _hubContext.Clients.Group(sessionId)
-                                    .SendAsync("ReceiveUpdate", updatePayload, stoppingToken);
+                                    .SendAsync("ReceiveUpdate", payload, stoppingToken);
                             }
                             catch (Exception ex)
                             {

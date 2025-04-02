@@ -35,6 +35,8 @@ builder.Services.AddSingleton<IAnimalFactory, AnimalFactory>();
 
 builder.Services.AddSingleton<IGameSessionService, GameSessionService>();
 
+builder.Services.AddSingleton<IDisplayConfigService, DisplayConfigService>();
+
 builder.Services.AddHostedService<GameLoopService>();
 
 // --- Authentication Configuration ---

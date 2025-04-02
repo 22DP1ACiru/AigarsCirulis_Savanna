@@ -8,8 +8,6 @@ using Savanna.Core.Models;
 using Savanna.Data.Entities;
 using Savanna.Web.Utils;
 using Microsoft.AspNetCore.Authorization;
-using Savanna.Backend.Configuration;
-using Savanna.Backend.Plugins;
 
 namespace Savanna.Web.Hubs
 {
@@ -18,17 +16,20 @@ namespace Savanna.Web.Hubs
     {
         private readonly IGameSessionService _sessionService;
         private readonly IGameSaveService _gameSaveService;
+        private readonly IDisplayConfigService _displayConfigService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<GameHub> _logger;
 
         public GameHub(
             IGameSessionService sessionService,
             IGameSaveService gameSaveService,
+            IDisplayConfigService displayConfigService,
             UserManager<ApplicationUser> userManager,
             ILogger<GameHub> logger)
         {
             _sessionService = sessionService;
             _gameSaveService = gameSaveService;
+            _displayConfigService = displayConfigService;
             _userManager = userManager;
             _logger = logger;
         }
@@ -54,49 +55,7 @@ namespace Savanna.Web.Hubs
         /// Client calls this to get the current symbol-to-icon mapping.
         /// </summary>
         /// <returns>A dictionary where Key=Symbol (char), Value=Icon (string).</returns>
-        public Dictionary<char, string> GetDisplayConfig()
-        {
-            _logger.LogInformation("Client requested display configuration.");
-            // Use Singletons directly
-            var configService = ConfigurationService.Instance;
-            var pluginManager = PluginManager.Instance;
-            var displayMap = new Dictionary<char, string>();
-
-            // 1. Add built-in animals from main config
-            if (configService.AnimalConfig?.Animals != null)
-            {
-                foreach (var kvp in configService.AnimalConfig.Animals)
-                {
-                    var config = kvp.Value;
-                    // Check symbol and non-empty icon
-                    if (config.Symbol != default(char) && !string.IsNullOrEmpty(config.Icon))
-                    {
-                        displayMap[config.Symbol] = config.Icon;
-                    }
-                }
-            }
-
-            // 2. Add registered plugin animals
-            // Iterate through the plugins registered *successfully* in PluginManager
-            foreach (var kvp in pluginManager.RegisteredPlugins) // Key is Symbol, Value is IAnimalPlugin
-            {
-                char symbol = kvp.Key;
-                IAnimalPlugin plugin = kvp.Value;
-
-                // Get the config associated with this specific plugin instance
-                // (which should be the same one registered in ConfigurationService)
-                var pluginConfig = plugin.GetAnimalConfig(); // Or use configService.GetAnimalConfig(plugin.AnimalType)
-
-                // Ensure it has an icon and hasn't already been added (redundant check, but safe)
-                if (pluginConfig != null && !string.IsNullOrEmpty(pluginConfig.Icon) && !displayMap.ContainsKey(symbol))
-                {
-                    displayMap[symbol] = pluginConfig.Icon;
-                }
-            }
-
-            _logger.LogDebug("Returning display config map with {Count} entries.", displayMap.Count);
-            return displayMap;
-        }
+        public Dictionary<char, string> GetDisplayConfig() { return _displayConfigService.GetSymbolIconMap(); }
 
         /// <summary>
         /// Client calls this to join a specific game session group.
@@ -116,18 +75,8 @@ namespace Savanna.Web.Hubs
             // Send the initial state immediately upon joining
             try
             {
-                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
-                var iterationCount = session.Engine.IterationCount;
-                var livingAnimalCount = session.Engine.LivingAnimalCount;
-
-                var initialPayload = new
-                {
-                    Grid = grid,
-                    IterationCount = iterationCount,
-                    LivingAnimalCount = livingAnimalCount
-                };
-
-                await Clients.Caller.SendAsync("ReceiveUpdate", initialPayload);
+                var payload = PayloadUtils.CreateWebPayload(session, _logger);
+                await Clients.Caller.SendAsync("ReceiveUpdate", payload);
             }
             catch (Exception ex)
             {
@@ -219,18 +168,9 @@ namespace Savanna.Web.Hubs
             {
                 session.InitializeNewGame(); // Initialize the game engine
 
-                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
-                var iterationCount = session.Engine.IterationCount;
-                var livingAnimalCount = session.Engine.LivingAnimalCount;
+                var payload = PayloadUtils.CreateWebPayload(session, _logger);
+                await Clients.Group(sessionId).SendAsync("ReceiveUpdate", payload);
 
-                var resetPayload = new
-                {
-                    Grid = grid,
-                    IterationCount = iterationCount,
-                    LivingAnimalCount = livingAnimalCount
-                };
-
-                await Clients.Group(sessionId).SendAsync("ReceiveUpdate", resetPayload);
                 _logger.LogDebug("Reset completed and update sent for session {SessionId}", sessionId);
             }
             catch (Exception ex)
@@ -240,17 +180,43 @@ namespace Savanna.Web.Hubs
             }
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public async Task<object> GetAnimalStats(string sessionId, Guid animalId)
         {
-            if (exception != null)
+            var (user, session, isAuthorized) = await AuthorizeSessionAction(sessionId);
+            if (!isAuthorized) return null;
+
+            _logger.LogDebug("Request for animal stats. Session: {SessionId}");
+
+            try
             {
-                _logger.LogWarning(exception, "Client {ConnectionId} disconnected with error.", Context.ConnectionId);
+                IAnimal animal = session.Engine.GetAnimalById(animalId);
+
+                if (animal != null)
+                {
+                    var stats = new
+                    {
+                        TypeName = animal.AnimalTypeName,
+                        Age = animal.Age,
+                        Health = animal.Health,
+                        Offspring = animal.OffspringCount,
+                        PositionX = animal.Position.X, // Send back coords for verification
+                        PositionY = animal.Position.Y
+                    };
+                    _logger.LogDebug("Found animal: {TypeName}, returning stats.", stats.TypeName);
+                    return stats;
+                }
+                else
+                {
+                    _logger.LogDebug("No animal found.");
+                    return null;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogInformation("Client {ConnectionId} disconnected.", Context.ConnectionId);
+                _logger.LogError(ex, "Error getting animal stats for Session {SessionId}", sessionId);
+                // Don't send exception details to client, just indicate failure
+                return new { Error = "Failed to retrieve animal stats." };
             }
-            await base.OnDisconnectedAsync(exception);
         }
     }
 }
