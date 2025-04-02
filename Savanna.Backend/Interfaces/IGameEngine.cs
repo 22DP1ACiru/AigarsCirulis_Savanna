@@ -21,6 +21,13 @@
         void AddAnimal(IAnimal animal);
 
         /// <summary>
+        /// Gets animal by unique ID.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IAnimal GetAnimalById(Guid id);
+
+        /// <summary>
         /// Generates a display grid representing the current state of the game.
         /// </summary>
         /// <returns>A 2D character array representing the game grid with animals.</returns>

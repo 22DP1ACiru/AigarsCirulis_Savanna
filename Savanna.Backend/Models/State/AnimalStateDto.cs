@@ -3,6 +3,7 @@
     public class AnimalStateDto
     {
         // Common properties from AnimalBase/IAnimal
+        public Guid UniqueId { get; set; }
         public string AnimalType { get; set; } // e.g., "Lion", "Antelope", plugin type name
         public Position Position { get; set; }
         public double Health { get; set; }

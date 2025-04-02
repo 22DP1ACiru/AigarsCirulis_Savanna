@@ -112,6 +112,28 @@
         }
 
         /// <summary>
+        /// Gets animal at specified position.
+        /// </summary>
+        /// <param name="position">Specified position.</param>
+        /// <returns>Animal at position.</returns>
+        public IAnimal GetAnimalAtPosition(Position position)
+        {
+            lock (_lock)
+            {
+                return _animals.FirstOrDefault(a => a.IsAlive && a.Position.Equals(position));
+            }
+        }
+
+        public IAnimal GetAnimalById(Guid id)
+        {
+            lock (_lock)
+            {
+                // Find the first (and should be only) animal with this ID
+                return _animals.FirstOrDefault(a => a.UniqueId == id);
+            }
+        }
+
+        /// <summary>
         /// Adds a new animal at a random empty position on the game grid.
         /// </summary>
         /// <param name="animal">The animal to add.</param>
