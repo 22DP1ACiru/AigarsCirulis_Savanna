@@ -118,6 +118,17 @@
                 }
             }
         }
+        protected virtual void MoveRandomlyIfPossible()
+        {
+            var validDirections = DirectionExtensions.GetValidMoveDirections(this.Position);
+            if (!validDirections.Any())
+            {
+                // No valid moves, do nothing
+            }
+
+            Direction chosenDirection = validDirections[Random.Next(validDirections.Count)];
+            Move(chosenDirection);
+        }
 
         public virtual List<IAnimal> LookAround(List<IAnimal> animals)
         {

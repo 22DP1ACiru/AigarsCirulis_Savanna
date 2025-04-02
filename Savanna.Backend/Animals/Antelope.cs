@@ -45,7 +45,7 @@
             // If no fleeing occurred, move randomly
             if (!fled)
             {
-                Move(DirectionExtensions.GetRandomDirection());
+                MoveRandomlyIfPossible();
             }
         }
 
