@@ -8,7 +8,7 @@ export function renderGrid(cells) {
     State.setCurrentGridCells(cells); // Update state
 
     if (!DOM.gameGridElement) return;
-    // ... (checks for empty/invalid cells based on State.getCurrentGridCells()) ...
+
     if (State.getCurrentGridCells().length === 0) {
         DOM.gameGridElement.innerHTML = Const.MSG_WAITING_DATA;
         return;
@@ -75,14 +75,13 @@ export function updateStatsDisplay() {
     if (stats && selectedId) {
         DOM.animalStatsElement.innerHTML = `
              <strong>${stats.typeName || 'Unknown Type'}</strong><br>
-             Age: ${stats.age ?? '-'} ticks<br>
+             Age: ${stats.age ?? '-'} iterations<br>
              Health: ${stats.health?.toFixed(1) ?? '-'} <br>
              Offspring: ${stats.offspring ?? '-'} <br>
              Pos: (${stats.positionX ?? '?'}, ${stats.positionY ?? '?'})`;
         DOM.showElement(DOM.animalStatsElement);
     } else {
         DOM.animalStatsElement.innerHTML = 'Click an animal...';
-        DOM.showElement(DOM.animalStatsElement); // Or hideElement(DOM.animalStatsElement);
     }
 }
 

@@ -55,7 +55,7 @@ export function getCurrentGridCells() { return currentGridCells; }
 
 export function setSelectedAnimal(id, stats) {
     selectedAnimalId = id;
-    lastFetchedStats = stats ? { ...stats, startIteration: currentIteration } : null;
+    lastFetchedStats = stats;
 }
 export function getSelectedAnimalId() { return selectedAnimalId; }
 export function getLastFetchedStats() { return lastFetchedStats; }

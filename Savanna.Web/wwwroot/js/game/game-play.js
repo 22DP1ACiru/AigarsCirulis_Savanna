@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Select new animal - fetch its stats
                 State.setSelectedAnimal(animalId, null); // Set ID, clear old stats
                 UI.applyHighlight(cellElement);
-                UI.updateStatsDisplay(); // Clear display / show loading?
+                UI.updateStatsDisplay(); // Clear display
                 await SignalR.invokeGetStats(sessionId, animalId); // Fetch and update
             } else {
                 // Clicked empty cell
