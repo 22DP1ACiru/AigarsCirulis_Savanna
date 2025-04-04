@@ -1,5 +1,4 @@
-﻿// wwwroot/js/signalr-connection.js (NEW FILE)
-import * as Const from './game-constants.js';
+﻿import * as Const from './game-constants.js';
 import * as State from './game-state.js';
 import * as UI from './game-ui.js';
 
@@ -16,7 +15,6 @@ let isFetchingStats = false; // Prevent multiple simultaneous fetches
 
 // --- Hub Event Handlers ---
 connection.on("ReceiveUpdate", (updatePayload) => {
-    console.log("ReceiveUpdate payload:", updatePayload); // Debugging
     if (updatePayload && updatePayload.cells) {
         State.updateIteration(updatePayload.iterationCount);
         if (typeof updatePayload.livingAnimalCount !== 'undefined') {
@@ -32,6 +30,12 @@ connection.on("ReceiveUpdate", (updatePayload) => {
 connection.on("SaveStatus", (message, isSuccess) => {
     UI.showStatus(message, isSuccess);
     if (isSuccess) { State.setLastSave(); }
+});
+
+connection.on("GameStalled", (message) => {
+    UI.showGridOverlayMessage(message);
+    // Disable controls using UI function
+    UI.disableGameControls(true);
 });
 
 connection.onclose(async (error) => {
@@ -127,9 +131,3 @@ async function refreshSelectedStatsIfNeeded() {
         await invokeGetStats(State.getSessionId(), selectedId); // State needs getSessionId()
     }
 }
-
-// Need getSessionId in State module or pass it around
-// Add to game-state.js:
-// let currentSessionId = null;
-// export function setSessionId(id) { currentSessionId = id; }
-// export function getSessionId() { return currentSessionId; }

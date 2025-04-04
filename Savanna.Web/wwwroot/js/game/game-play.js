@@ -1,5 +1,4 @@
-﻿// wwwroot/js/game-play.js (NEW FILE - Main Entry Point)
-import * as Const from './game-constants.js';
+﻿import * as Const from './game-constants.js';
 import * as DOM from './game-dom.js';
 import * as State from './game-state.js';
 import * as UI from './game-ui.js';
@@ -9,8 +8,7 @@ import * as SignalR from './signalr-connection.js';
 document.addEventListener('DOMContentLoaded', async () => {
     // Basic check for essential elements
     if (!DOM.gameGridElement || !DOM.gameGridElement.dataset.sessionId) {
-        console.error(Const.MSG_GRID_OR_SESSION_NOT_FOUND_ERROR);
-        alert(Const.MSG_GRID_OR_SESSION_NOT_FOUND_ERROR); // Inform user
+        alert(Const.MSG_GRID_OR_SESSION_NOT_FOUND_ERROR);
         return; // Stop initialization
     }
 
@@ -21,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const connected = await SignalR.connect(sessionId);
     if (!connected) {
         UI.showStatus("Failed to connect to game server.", false);
-        // Maybe disable controls?
         return;
     }
 
@@ -30,13 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add Animal Buttons
     if (DOM.btnAddAntelope) DOM.btnAddAntelope.addEventListener('click', () => SignalR.invokeAddAnimal(sessionId, 'Antelope'));
     if (DOM.btnAddLion) DOM.btnAddLion.addEventListener('click', () => SignalR.invokeAddAnimal(sessionId, 'Lion'));
-    // Add listeners for plugin buttons here if/when implemented
+    // Add listeners for plugin buttons here
 
     // Reset Button
     if (DOM.btnResetGame) DOM.btnResetGame.addEventListener('click', async () => {
         if (confirm(Const.MSG_RESET_CONFIRM)) {
             await SignalR.invokeResetGame(sessionId);
-            // Note: State update happens via ReceiveUpdate after reset
+
+            UI.resetUIState();
         }
     });
 
@@ -50,7 +48,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         UI.showStatus(Const.MSG_SAVING, true);
         await SignalR.invokeSaveGame(sessionId, saveName);
-        // Note: Actual state update happens via SaveStatus message
     });
 
     // Display Mode Button
@@ -71,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             UI.clearHighlight(); // Clear visual highlight immediately
 
             if (animalId) {
-                // If clicking same animal, deselect it (optional UX)
+                // If clicking same animal, deselect it
                 if (animalId === State.getSelectedAnimalId()) {
                     State.clearSelectedAnimal();
                     UI.updateStatsDisplay();

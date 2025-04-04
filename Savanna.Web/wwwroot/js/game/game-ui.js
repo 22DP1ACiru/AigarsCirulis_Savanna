@@ -121,3 +121,36 @@ export function clearSaveInput() {
 export function focusSaveInput() {
     if (DOM.saveNameInput) DOM.saveNameInput.focus();
 }
+
+export function disableGameControls(disabled) {
+    if (DOM.btnAddAntelope) DOM.btnAddAntelope.disabled = disabled;
+    if (DOM.btnAddLion) DOM.btnAddLion.disabled = disabled;
+    if (DOM.btnSaveGame) DOM.btnSaveGame.disabled = disabled;
+}
+
+export function showGridOverlayMessage(message) {
+    if (DOM.gridOverlayMessageElement && DOM.gridOverlayTextElement) {
+        DOM.gridOverlayTextElement.textContent = message;
+        DOM.gridOverlayMessageElement.style.display = 'flex'; // Use flex to show
+    }
+}
+
+export function hideGridOverlayMessage() {
+    if (DOM.gridOverlayMessageElement) {
+        DOM.gridOverlayMessageElement.style.display = 'none'; // Hide it
+    }
+}
+
+export function resetUIState() {
+    State.resetLastSave(); // Reset unsaved changes counter in state
+    State.clearSelectedAnimal(); // Clear selection state
+    updateStatsDisplay(); // Clear stats display on UI
+    clearHighlight(); // Clear highlight visually
+    disableGameControls(false); // Re-enable Add/Save buttons
+    hideGridOverlayMessage();
+    // Clear any persistent stall message
+    if (DOM.saveStatusElement && DOM.saveStatusElement.textContent.includes("stalled")) {
+        showStatus("Game Reset!", true); // Show temporary success
+    }
+    console.log("UI state reset.");
+}

@@ -41,6 +41,13 @@ namespace Savanna.Web.Services
                     {
                         var session = _sessionService.GetOrCreateSession(sessionId);
 
+                        if (session?.IsStalled ?? false)
+                        {
+                            await _hubContext.Clients.Group(sessionId)
+                                .SendAsync("GameStalled", "Cannot place new animals: Grid area full! Please Reset.", stoppingToken);
+                            continue; // Skip update for this session
+                        }
+
                         if (session != null && !string.IsNullOrEmpty(session.OwnerUserId))
                         {
                             try

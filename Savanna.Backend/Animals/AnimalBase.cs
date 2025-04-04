@@ -210,15 +210,7 @@
         {
             Position birthPosition = null;
 
-            try
-            {
                 birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
-            }
-            catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
-            {
-                Console.WriteLine($"[INFO] Animal {Symbol} at {Position} could not create offspring: {ioex.Message}");
-                birthPosition = null;
-            }
 
             if (birthPosition != null)
             {

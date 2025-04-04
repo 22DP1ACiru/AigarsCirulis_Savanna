@@ -21,6 +21,12 @@ export const DOM_ID_ITERATION_COUNT = 'iterationCount';
 export const DOM_ID_ANIMAL_COUNT = 'animalCount';
 export const DOM_ID_DISPLAY_MODE_BUTTON = 'btnDisplayMode';
 export const DOM_ID_STATS_DISPLAY = 'animalStatsDisplay';
+export const DOM_ID_ADD_ANTELOPE_BUTTON = 'btnAddAntelope';
+export const DOM_ID_ADD_LION_BUTTON = 'btnAddLion';
+export const DOM_ID_RESET_GAME_BUTTON = 'btnResetGame';
+export const DOM_ID_SAVE_GAME_BUTTON = 'btnSaveGame';
+export const DOM_ID_GRID_OVERLAY = 'gridOverlayMessage';
+export const DOM_ID_GRID_OVERLAY_TEXT = 'gridOverlayText';
 
 export const DEFAULT_COUNT_DISPLAY = '-';
 export const ITERATION_THRESHOLD_FOR_WARNING = 20;

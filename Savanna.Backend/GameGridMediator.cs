@@ -1,9 +1,9 @@
-﻿namespace Savanna.Backend
-{
-    using System;
-    using Savanna.Backend.Interfaces;
-    using Savanna.Backend.Models;
+﻿using Savanna.Backend.Interfaces;
+using Savanna.Backend.Models;
+using Savanna.Backend.Exceptions;
 
+namespace Savanna.Backend
+{
     /// <summary>
     /// Mediator for accessing game grid functionality across the application.
     /// </summary>
@@ -76,16 +76,21 @@
                     position.X + offset.X,
                     position.Y + offset.Y
                 );
-
+                    
                 if (IsPositionValid(adjacentPos) && !IsPositionOccupied(adjacentPos))
                 {
                     return adjacentPos;
                 }
             }
 
-            return null;
+            throw new GridFullException("No empty adjacent position found.");
         }
 
+        /// <summary>
+        /// Gets animal at specified position.
+        /// </summary>
+        /// <param name="position">Position to check.</param>
+        /// <returns>Unique animal in specified position.</returns>
         public IAnimal GetAnimalAtPosition(Position position)
         {
             if (_gameGrid == null) return null;

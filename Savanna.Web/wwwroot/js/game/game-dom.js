@@ -5,13 +5,15 @@ export const saveStatusElement = document.getElementById(Const.DOM_ID_SAVE_STATU
 export const saveNameInput = document.getElementById(Const.DOM_ID_SAVE_NAME_INPUT);
 export const iterationCountElement = document.getElementById(Const.DOM_ID_ITERATION_COUNT);
 export const animalCountElement = document.getElementById(Const.DOM_ID_ANIMAL_COUNT);
-export const btnDisplayMode = document.getElementById(Const.DOM_ID_DISPLAY_MODE_BUTTON);
 export const animalStatsElement = document.getElementById(Const.DOM_ID_STATS_DISPLAY);
+export const gridOverlayMessageElement = document.getElementById(Const.DOM_ID_GRID_OVERLAY);
+export const gridOverlayTextElement = document.getElementById(Const.DOM_ID_GRID_OVERLAY_TEXT);
 
-export const btnAddAntelope = document.getElementById('btnAddAntelope');
-export const btnAddLion = document.getElementById('btnAddLion');
-export const btnResetGame = document.getElementById('btnResetGame');
-export const btnSaveGame = document.getElementById('btnSaveGame');
+export const btnDisplayMode = document.getElementById(Const.DOM_ID_DISPLAY_MODE_BUTTON);
+export const btnAddAntelope = document.getElementById(Const.DOM_ID_ADD_ANTELOPE_BUTTON);
+export const btnAddLion = document.getElementById(Const.DOM_ID_ADD_LION_BUTTON);
+export const btnResetGame = document.getElementById(Const.DOM_ID_RESET_GAME_BUTTON);
+export const btnSaveGame = document.getElementById(Const.DOM_ID_SAVE_GAME_BUTTON);
 
 export function getElementById(id) {
     return document.getElementById(id);
