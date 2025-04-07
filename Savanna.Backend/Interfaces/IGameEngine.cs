@@ -22,6 +22,13 @@
         void AddAnimal(IAnimal animal);
 
         /// <summary>
+        /// Adds a new animal by specified type name for use with Savanna.Web
+        /// </summary>
+        /// <param name="animalTypeName"></param>
+        /// <returns></returns>
+        bool AddAnimalByName(string animalTypeName);
+
+        /// <summary>
         /// Gets animal by unique ID.
         /// </summary>
         /// <param name="id"></param>

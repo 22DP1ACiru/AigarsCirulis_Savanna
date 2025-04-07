@@ -3,6 +3,7 @@ using Savanna.Backend.Models.State;
 using Savanna.Backend.Animals;
 using Savanna.Backend.Plugins;
 using Savanna.Backend.Constants;
+using Savanna.Backend.Models;
 
 namespace Savanna.Backend.Factories
 {
@@ -57,6 +58,52 @@ namespace Savanna.Backend.Factories
                 return null;
             }
 
+            return animal;
+        }
+
+        public IAnimal CreateAnimalByType(string animalTypeName, Position initialPosition)
+        {
+            if (string.IsNullOrEmpty(animalTypeName))
+            {
+                Console.WriteLine(string.Format(LoggingConstants.AnimalFactoryWarningTypeNotFound, "NULL_OR_EMPTY"));
+                return null;
+            }
+
+            IAnimal animal = null;
+            try
+            {
+                // Check built-in types first
+                if (animalTypeName.Equals(nameof(Antelope), StringComparison.OrdinalIgnoreCase))
+                {
+                    animal = new Antelope(initialPosition);
+                }
+                else if (animalTypeName.Equals(nameof(Lion), StringComparison.OrdinalIgnoreCase))
+                {
+                    animal = new Lion(initialPosition);
+                }
+                else
+                {
+                    // Try finding a registered plugin by TypeName
+                    var plugin = _pluginManager.RegisteredPlugins.Values
+                                    .FirstOrDefault(p => p.AnimalType.Equals(animalTypeName, StringComparison.OrdinalIgnoreCase));
+
+                    if (plugin != null)
+                    {
+                        animal = plugin.CreateAnimal(initialPosition);
+                    }
+                    else
+                    {
+                        Console.WriteLine(string.Format(LoggingConstants.AnimalFactoryWarningTypeNotFound, animalTypeName));
+                        return null; // Type not found
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Use a different constant or message for creation error vs. state loading error
+                Console.WriteLine($"[AnimalFactory] Error during CREATION for animal type '{animalTypeName}'. Error: {ex.Message}");
+                return null;
+            }
             return animal;
         }
     }

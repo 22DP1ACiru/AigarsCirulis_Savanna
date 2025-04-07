@@ -148,7 +148,29 @@
                 }
             }
         }
-            
+
+        public bool AddAnimalByName(string animalTypeName)
+        {
+            if (IsStalled) // Don't add if stalled
+            {
+                return false;
+            }
+
+            // Use the factory to create the correct instance
+            IAnimal animal = _animalFactory.CreateAnimalByType(animalTypeName, new Position(0, 0)); // Position will be overridden by AddAnimal
+
+            if (animal != null)
+            {
+                AddAnimal(animal); // Use existing AddAnimal to find random spot & add to list
+                                   // AddAnimal handles the GridFullException if placement fails
+                return true; // Return true indicating successful *attempt* to add (placement might still fail silently in AddAnimal based on logging)
+            }
+            else
+            {
+                return false; // Factory couldn't create it
+            }
+        }
+
         /// <summary>
         /// Generates a display grid representing the current state of the game.
         /// </summary>
