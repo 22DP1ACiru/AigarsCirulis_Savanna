@@ -15,6 +15,10 @@ export const btnAddLion = document.getElementById(Const.DOM_ID_ADD_LION_BUTTON);
 export const btnResetGame = document.getElementById(Const.DOM_ID_RESET_GAME_BUTTON);
 export const btnSaveGame = document.getElementById(Const.DOM_ID_SAVE_GAME_BUTTON);
 
+export const pluginControlsContainer = document.getElementById(Const.DOM_ID_PLUGIN_CONTROLS);
+export const pluginSelectElement = document.getElementById(Const.DOM_ID_PLUGIN_SELECT);
+export const btnAddSelectedPluginAnimal = document.getElementById(Const.DOM_ID_PLUGIN_ADD_BUTTON);
+
 export function getElementById(id) {
     return document.getElementById(id);
 }

@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     State.setSessionId(sessionId); // Store session ID in state module
 
     // Connect to SignalR and fetch initial config/state
-    const connected = await SignalR.connect(sessionId);
-    if (!connected) {
+    const connectionResult = await SignalR.connect(sessionId); // Get result object
+    if (!connectionResult.connected) {
         UI.showStatus("Failed to connect to game server.", false);
         return;
     }
@@ -27,7 +27,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add Animal Buttons
     if (DOM.btnAddAntelope) DOM.btnAddAntelope.addEventListener('click', () => SignalR.invokeAddAnimal(sessionId, 'Antelope'));
     if (DOM.btnAddLion) DOM.btnAddLion.addEventListener('click', () => SignalR.invokeAddAnimal(sessionId, 'Lion'));
-    // Add listeners for plugin buttons here
+
+    const availableTypes = connectionResult.availableTypes; // Get types from result
+
+    // --- Setup Plugin Controls ---
+    if (availableTypes && availableTypes.length > 0) {
+        const pluginTypes = availableTypes.filter(animal => animal.isPlugin); // Filter for plugins
+
+        if (pluginTypes.length > 0) {
+            console.log("Found Plugins:", pluginTypes);
+            UI.populatePluginDropdown(pluginTypes); // Populate dropdown
+            UI.showPluginControls(true); // Show the plugin controls section
+
+            // Add listener to dropdown to enable/disable button
+            if (DOM.pluginSelectElement) {
+                DOM.pluginSelectElement.addEventListener('change', () => {
+                    UI.enableAddPluginButton(!!DOM.pluginSelectElement.value); // Enable if value selected
+                });
+            } else { console.warn("Plugin select element not found."); }
+
+            // Add listener for the Add Plugin Animal button
+            if (DOM.btnAddSelectedPluginAnimal) {
+                DOM.btnAddSelectedPluginAnimal.addEventListener('click', () => {
+                    const selectedType = DOM.pluginSelectElement ? DOM.pluginSelectElement.value : null;
+                    if (selectedType) {
+                        SignalR.invokeAddAnimal(sessionId, selectedType);   
+                    } else {
+                        UI.showStatus("Please select a plugin animal type to add.", false);
+                    }
+                });
+                DOM.btnAddSelectedPluginAnimal.disabled = true; // Start disabled
+            } else { console.warn("Add plugin animal button not found."); }
+
+        } else {
+            console.log("No plugins detected.");
+            UI.showPluginControls(false); // Keep controls hidden if no plugins
+        }
+    } else {
+        console.log("No available animal types received from server.");
+        UI.showPluginControls(false); // Keep controls hidden
+    }
 
     // Reset Button
     if (DOM.btnResetGame) DOM.btnResetGame.addEventListener('click', async () => {

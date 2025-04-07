@@ -154,3 +154,36 @@ export function resetUIState() {
     }
     console.log("UI state reset.");
 }
+
+export function populatePluginDropdown(pluginTypes) {
+    const selectElement = DOM.pluginSelectElement;
+    if (!selectElement) return;
+
+    selectElement.innerHTML = '<option selected disabled value="">Select Plugin...</option>';
+
+    if (pluginTypes && pluginTypes.length > 0) {
+        pluginTypes.forEach(animal => {
+            const option = document.createElement('option');
+            option.value = animal.typeName;
+            option.textContent = `${animal.icon || ''} ${animal.typeName} (${animal.symbol})`;
+            selectElement.appendChild(option);
+        });
+        selectElement.disabled = false;
+    } else {
+        selectElement.disabled = true;
+    }
+}
+
+export function showPluginControls(show) {
+    const container = DOM.pluginControlsContainer;
+    if (container) {
+        container.style.display = show ? 'block' : 'none';
+    }
+}
+
+export function enableAddPluginButton(enabled) {
+    const button = DOM.btnAddSelectedPluginAnimal;
+    if (button) {
+        button.disabled = !enabled;
+    }
+}

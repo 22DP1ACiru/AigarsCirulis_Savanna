@@ -45,26 +45,48 @@ connection.onclose(async (error) => {
 
 // --- Connection Management ---
 export async function connect(sessionId) {
-    if (connection.state === signalR.HubConnectionState.Connected) return true;
+    if (connection.state === signalR.HubConnectionState.Connected) return { connected: true, availableTypes: [] };
+
+    let fetchedTypes = null;
     try {
         await connection.start();
         console.log("SignalR Connected.");
-        // Fetch display config
+
+        // Fetch available animal types
         try {
-            const configMap = await connection.invoke("GetDisplayConfig");
-            State.setAnimalIcons(configMap);
-            console.log("Display config received:", State.getAnimalIcons());
-        } catch (err) { console.error("Error fetching display config:", err); }
+            console.log("Attempting invoke GetAvailableAnimalTypes...");
+            const availableTypes = await connection.invoke("GetAvailableAnimalTypes");
+            fetchedTypes = availableTypes || [];
+
+            console.log("Available animal types received:", fetchedTypes);
+            const iconMap = {};
+            if (fetchedTypes.length > 0) {
+                fetchedTypes.forEach(a => {
+                    if (a.symbol && a.icon) {
+                        iconMap[a.symbol] = a.icon;
+                    }
+                });
+            }
+            State.setAnimalIcons(iconMap);
+            console.log("Icon map set:", State.getAnimalIcons());
+        } catch (err) {
+            console.error("Error fetching display config:", err);
+            fetchedTypes = [];
+        }
+
         // Join session
         await connection.invoke("JoinSession", sessionId);
         console.log(`Joined session group: ${sessionId}`);
+
         // Update initial UI state
         UI.updateDisplayModeButton();
-        return true;
+        console.log("Connect function successful.");
+
+        return { connected: true, availableTypes: fetchedTypes };
     } catch (err) {
         console.error("SignalR Connection Error: ", err);
         UI.showStatus(Const.MSG_CONNECTION_ERROR, false);
-        return false;
+        return { connected: false, availableTypes: null };
     }
 }
 

@@ -27,6 +27,9 @@ export const DOM_ID_RESET_GAME_BUTTON = 'btnResetGame';
 export const DOM_ID_SAVE_GAME_BUTTON = 'btnSaveGame';
 export const DOM_ID_GRID_OVERLAY = 'gridOverlayMessage';
 export const DOM_ID_GRID_OVERLAY_TEXT = 'gridOverlayText';
+export const DOM_ID_PLUGIN_CONTROLS = 'pluginControls';
+export const DOM_ID_PLUGIN_SELECT = 'selectPluginAnimalToAdd';
+export const DOM_ID_PLUGIN_ADD_BUTTON = 'btnAddSelectedPluginAnimal';
 
 export const DEFAULT_COUNT_DISPLAY = '-';
 export const ITERATION_THRESHOLD_FOR_WARNING = 20;
