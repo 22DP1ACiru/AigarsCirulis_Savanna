@@ -8,6 +8,9 @@ using Savanna.Core.Models;
 using Savanna.Data.Entities;
 using Savanna.Web.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Savanna.Backend.Configuration;
+using Savanna.Backend.Plugins;
+using Savanna.Web.DTOs;
 
 namespace Savanna.Web.Hubs
 {
@@ -16,17 +19,20 @@ namespace Savanna.Web.Hubs
     {
         private readonly IGameSessionService _sessionService;
         private readonly IGameSaveService _gameSaveService;
+        private readonly IDisplayConfigService _displayConfigService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<GameHub> _logger;
 
         public GameHub(
             IGameSessionService sessionService,
             IGameSaveService gameSaveService,
+            IDisplayConfigService displayConfigService,
             UserManager<ApplicationUser> userManager,
             ILogger<GameHub> logger)
         {
             _sessionService = sessionService;
             _gameSaveService = gameSaveService;
+            _displayConfigService = displayConfigService;
             _userManager = userManager;
             _logger = logger;
         }
@@ -49,6 +55,12 @@ namespace Savanna.Web.Hubs
         }
 
         /// <summary>
+        /// Client calls this to get the current symbol-to-icon mapping.
+        /// </summary>
+        /// <returns>A dictionary where Key=Symbol (char), Value=Icon (string).</returns>
+        public Dictionary<char, string> GetDisplayConfig() { return _displayConfigService.GetSymbolIconMap(); }
+
+        /// <summary>
         /// Client calls this to join a specific game session group.
         /// </summary>
         public async Task JoinSession(string sessionId)
@@ -66,18 +78,8 @@ namespace Savanna.Web.Hubs
             // Send the initial state immediately upon joining
             try
             {
-                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
-                var iterationCount = session.Engine.IterationCount;
-                var livingAnimalCount = session.Engine.LivingAnimalCount;
-
-                var initialPayload = new
-                {
-                    Grid = grid,
-                    IterationCount = iterationCount,
-                    LivingAnimalCount = livingAnimalCount
-                };
-
-                await Clients.Caller.SendAsync("ReceiveUpdate", initialPayload);
+                var payload = PayloadUtils.CreateWebPayload(session, _logger);
+                await Clients.Caller.SendAsync("ReceiveUpdate", payload);
             }
             catch (Exception ex)
             {
@@ -88,38 +90,30 @@ namespace Savanna.Web.Hubs
         /// <summary>
         /// Client calls this to add a new animal to the game.
         /// </summary>
-        public async Task AddAnimal(string sessionId, string animalType)
+        public async Task AddAnimal(string sessionId, string animalTypeName)
         {
             var (user, session, isAuthorized) = await AuthorizeSessionAction(sessionId);
             if (!isAuthorized) return;
 
-            _logger.LogInformation("User {UserId} adding animal '{AnimalType}' to session {SessionId}", user.Id, animalType, sessionId);
+            _logger.LogInformation("User {UserId} adding animal '{AnimalType}' to session {SessionId}", user.Id, animalTypeName, sessionId);
 
             IAnimal newAnimal = null;
             try
             {
-                if (animalType == nameof(Antelope))
-                {
-                    newAnimal = new Antelope(new Position(0, 0));
-                }
-                else if (animalType == nameof(Lion))
-                {
-                    newAnimal = new Lion(new Position(0, 0));
-                }
+                bool wasAdded = session.Engine.AddAnimalByName(animalTypeName);
 
-                if (newAnimal != null)
+                if (!wasAdded)
                 {
-                    session.Engine.AddAnimal(newAnimal);
-                    _logger.LogDebug("Animal '{AnimalType}' added successfully to session {SessionId}", animalType, sessionId);
-                }
-                else
-                {
-                    _logger.LogWarning("Could not create animal of type '{AnimalType}' for session {SessionId}", animalType, sessionId);
+                    // Engine returned false, meaning factory didn't create the animal OR
+                    // AddAnimal failed (likely grid full on placement attempt).
+                    _logger.LogWarning("[GameHub] Engine failed to add animal '{AnimalType}' for session {SessionId}.", animalTypeName, sessionId);
+                    // Send specific feedback to the user
+                    await Clients.Caller.SendAsync("Error", $"Failed to add '{animalTypeName}'. Unknown type or grid may be full.");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding animal '{AnimalType}' to session {SessionId}", animalType, sessionId);
+                _logger.LogError(ex, "Error adding animal '{AnimalType}' to session {SessionId}", animalTypeName, sessionId);
                 await Clients.Caller.SendAsync("Error", $"Failed to add animal: {ex.Message}");
             }
         }
@@ -169,18 +163,9 @@ namespace Savanna.Web.Hubs
             {
                 session.InitializeNewGame(); // Initialize the game engine
 
-                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
-                var iterationCount = session.Engine.IterationCount;
-                var livingAnimalCount = session.Engine.LivingAnimalCount;
+                var payload = PayloadUtils.CreateWebPayload(session, _logger);
+                await Clients.Group(sessionId).SendAsync("ReceiveUpdate", payload);
 
-                var resetPayload = new
-                {
-                    Grid = grid,
-                    IterationCount = iterationCount,
-                    LivingAnimalCount = livingAnimalCount
-                };
-
-                await Clients.Group(sessionId).SendAsync("ReceiveUpdate", resetPayload);
                 _logger.LogDebug("Reset completed and update sent for session {SessionId}", sessionId);
             }
             catch (Exception ex)
@@ -190,17 +175,109 @@ namespace Savanna.Web.Hubs
             }
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public async Task<object> GetAnimalStats(string sessionId, Guid animalId)
         {
-            if (exception != null)
+            var (user, session, isAuthorized) = await AuthorizeSessionAction(sessionId);
+            if (!isAuthorized) return null;
+
+            _logger.LogDebug("Request for animal stats. Session: {SessionId}");
+
+            try
             {
-                _logger.LogWarning(exception, "Client {ConnectionId} disconnected with error.", Context.ConnectionId);
+                IAnimal animal = session.Engine.GetAnimalById(animalId);
+
+                if (animal != null)
+                {
+                    var stats = new
+                    {
+                        TypeName = animal.AnimalTypeName,
+                        Age = animal.Age,
+                        Health = animal.Health,
+                        Offspring = animal.OffspringCount,
+                        PositionX = animal.Position.X,
+                        PositionY = animal.Position.Y
+                    };
+                    _logger.LogDebug("Found animal: {TypeName}, returning stats.", stats.TypeName);
+                    return stats;
+                }
+                else
+                {
+                    _logger.LogDebug("No animal found.");
+                    return null;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogInformation("Client {ConnectionId} disconnected.", Context.ConnectionId);
+                _logger.LogError(ex, "Error getting animal stats for Session {SessionId}", sessionId);
+                // Don't send exception details to client, just indicate failure
+                return new { Error = "Failed to retrieve animal stats." };
             }
-            await base.OnDisconnectedAsync(exception);
         }
+
+        public List<AvailableAnimalDto> GetAvailableAnimalTypes()
+        {
+            _logger.LogInformation("[GameHub] Client requested available animal types.");
+            var configService = ConfigurationService.Instance; // For built-in config
+            var pluginManager = PluginManager.Instance;     // For plugin list
+            var animalList = new List<AvailableAnimalDto>();
+            var addedSymbols = new HashSet<char>(); // To handle potential symbol overlap
+
+            // Add built-in animals defined in AnimalConfig.json
+            if (configService.AnimalConfig?.Animals != null)
+            {
+                foreach (var kvp in configService.AnimalConfig.Animals)
+                {
+                    string typeName = kvp.Key;
+                    var config = kvp.Value;
+                    if (config.Symbol != default(char))
+                    {
+                        _logger.LogDebug("[GameHub] Found built-in type: {TypeName} ({Symbol})", typeName, config.Symbol);
+                        animalList.Add(new AvailableAnimalDto
+                        {
+                            TypeName = typeName,
+                            Symbol = config.Symbol,
+                            Icon = config.Icon,
+                            IsPlugin = false 
+                        });
+                        addedSymbols.Add(config.Symbol);
+                    }
+                }
+            }
+
+            // Add registered plugin animals from PluginManager
+            foreach (var kvp in pluginManager.RegisteredPlugins) // Key is Symbol, Value is IAnimalPlugin
+            {
+                char symbol = kvp.Key;
+                IAnimalPlugin plugin = kvp.Value;
+
+                // Check if this symbol was already added (e.g., a built-in with the same symbol)
+                // Note: PluginManager's current logic prevents loading plugins with duplicate symbols,
+                // so this check might be redundant but safe.
+                if (addedSymbols.Contains(symbol))
+                {
+                    _logger.LogDebug("[GameHub] Skipping plugin {PluginType} for display because symbol {Symbol} was already added.", plugin.AnimalType, symbol);
+                    continue;
+                }
+
+                var config = plugin.GetAnimalConfig(); // Get config directly from plugin instance
+                if (config != null)
+                {
+                    _logger.LogDebug("[GameHub] Found plugin type: {TypeName} ({Symbol})", plugin.AnimalType, config.Symbol);
+                    animalList.Add(new AvailableAnimalDto
+                    {
+                        TypeName = plugin.AnimalType, // Get name from plugin interface
+                        Symbol = config.Symbol,
+                        Icon = config.Icon,
+                        IsPlugin = true
+                    });
+                    // No need to add to addedSymbols here because PluginManager already enforced uniqueness on Symbol key
+                }
+            }
+
+            _logger.LogInformation("[GameHub] Returning {Count} available animal types.", animalList.Count);
+
+            return animalList.OrderBy(a => a.TypeName).ToList();
+        }
+
     }
-}
+}   

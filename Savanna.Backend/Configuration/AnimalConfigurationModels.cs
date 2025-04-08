@@ -16,6 +16,7 @@
         public int VisionRange { get; set; }
         public int MovementSpeed { get; set; }
         public char Symbol { get; set; }
+        public string Icon { get; set; }
         public double MaxHealth { get; set; }
         public int PowerLevel { get; set; }
 

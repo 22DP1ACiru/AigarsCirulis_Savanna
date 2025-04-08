@@ -9,6 +9,11 @@
     public interface IAnimal
     {
         /// <summary>
+        /// Gets the animal's unique ID for tracking.
+        /// </summary>
+        Guid UniqueId { get; }
+
+        /// <summary>
         /// Gets the current position of the animal in the game grid.
         /// </summary>
         Position Position { get; set; }
@@ -44,6 +49,16 @@
         double Health { get; }
 
         /// <summary>
+        /// Gets the age (iterations survived) of the animal.
+        /// </summary>
+        int Age { get; }
+
+        /// <summary>
+        /// Gets the offspring count of the animal.
+        /// </summary>
+        int OffspringCount { get; }
+
+        /// <summary>
         /// Gets the unique type identifier string.
         /// </summary>
         string AnimalTypeName { get; }
@@ -73,6 +88,20 @@
         /// <returns>Data transfer object representing animal state.</returns>
         AnimalStateDto GetState();
 
+        /// <summary>
+        /// Loads the animal state from animal state.
+        /// </summary>
+        /// <param name="state"></param>
         void LoadState(AnimalStateDto state);
+
+        /// <summary>
+        /// Increments age if animal is alive.
+        /// </summary>
+        void IncrementAge();
+
+        /// <summary>
+        /// Increments offspring count.
+        /// </summary>
+        void IncrementOffspringCount();
     }
 }

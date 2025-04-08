@@ -11,12 +11,25 @@ export const MSG_SAVE_NAME_EMPTY = "Please enter a name for the save.";
 export const MSG_SAVING = "Saving...";
 export const MSG_SAVE_INIT_ERROR = "Error initiating save: ";
 export const MSG_GRID_OR_SESSION_NOT_FOUND_ERROR = "Cannot initialize page: Game grid element or session ID not found.";
+export const MSG_SWAP_TO_LETTER_DISPLAY = "Switch to using letters";
+export const MSG_SWAP_TO_ICON_DISPLAY = "Switch to using icons";
 
 export const DOM_ID_GAME_GRID = 'gameGrid';
 export const DOM_ID_SAVE_STATUS = 'saveStatus';
 export const DOM_ID_SAVE_NAME_INPUT = 'saveGameName';
 export const DOM_ID_ITERATION_COUNT = 'iterationCount';
 export const DOM_ID_ANIMAL_COUNT = 'animalCount';
+export const DOM_ID_DISPLAY_MODE_BUTTON = 'btnDisplayMode';
+export const DOM_ID_STATS_DISPLAY = 'animalStatsDisplay';
+export const DOM_ID_ADD_ANTELOPE_BUTTON = 'btnAddAntelope';
+export const DOM_ID_ADD_LION_BUTTON = 'btnAddLion';
+export const DOM_ID_RESET_GAME_BUTTON = 'btnResetGame';
+export const DOM_ID_SAVE_GAME_BUTTON = 'btnSaveGame';
+export const DOM_ID_GRID_OVERLAY = 'gridOverlayMessage';
+export const DOM_ID_GRID_OVERLAY_TEXT = 'gridOverlayText';
+export const DOM_ID_PLUGIN_CONTROLS = 'pluginControls';
+export const DOM_ID_PLUGIN_SELECT = 'selectPluginAnimalToAdd';
+export const DOM_ID_PLUGIN_ADD_BUTTON = 'btnAddSelectedPluginAnimal';
 
 export const DEFAULT_COUNT_DISPLAY = '-';
 export const ITERATION_THRESHOLD_FOR_WARNING = 20;

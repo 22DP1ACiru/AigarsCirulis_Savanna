@@ -8,9 +8,13 @@ using Savanna.Backend.Interfaces;
 using Savanna.Backend.Factories;
 using Savanna.Web.Hubs;
 using Savanna.Web.Services;
-using Microsoft.AspNetCore.Identity;
+using Savanna.Backend.Configuration;
+using Savanna.Backend.Plugins;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var configService = ConfigurationService.Instance;
+PluginManager.Instance.Initialize();
 
 // --- Database & Identity ---
 // Add services to the container.
@@ -34,6 +38,8 @@ builder.Services.AddScoped<IGameSaveService, GameSaveService>();
 builder.Services.AddSingleton<IAnimalFactory, AnimalFactory>();
 
 builder.Services.AddSingleton<IGameSessionService, GameSessionService>();
+
+builder.Services.AddSingleton<IDisplayConfigService, DisplayConfigService>();
 
 builder.Services.AddHostedService<GameLoopService>();
 

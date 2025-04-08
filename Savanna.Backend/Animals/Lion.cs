@@ -53,7 +53,7 @@
             // If hunting didn't handle the turn, move randomly
             if (!actionTaken)
             {
-                Move(DirectionExtensions.GetRandomDirection());
+                MoveRandomlyIfPossible();
             }
         }
 

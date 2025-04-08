@@ -11,6 +11,7 @@ namespace Savanna.Core.Models
         public GameEngine Engine { get; }
         public string OwnerUserId { get; set; } // Tracks who owns/created this session
         public char[,] Grid => Engine.GetDisplayGrid();
+        public bool IsStalled => Engine.IsStalled;
 
         public GameSession(string sessionId, IAnimalFactory animalFactory)
         {

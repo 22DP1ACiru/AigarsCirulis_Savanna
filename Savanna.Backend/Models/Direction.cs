@@ -46,5 +46,30 @@
             Array values = Enum.GetValues(typeof(Direction));
             return (Direction)values.GetValue(_random.Next(values.Length));
         }
+
+        /// <summary>
+        /// Gets a list of directions that lead to a valid position on the grid from the current position.
+        /// Note: Only checks for grid boundaries.
+        /// </summary>
+        /// <param name="currentPosition">The starting position.</param>
+        /// <returns>A list of valid directions.</returns>
+        public static List<Direction> GetValidMoveDirections(Position currentPosition)
+        {
+            var validDirections = new List<Direction>();
+            var allDirections = (Direction[])Enum.GetValues(typeof(Direction));
+
+            foreach (Direction direction in allDirections)
+            {
+                Position offset = direction.GetOffset();
+                Position potentialNextPos = new Position(currentPosition.X + offset.X, currentPosition.Y + offset.Y);
+
+                // Check ONLY if the position is within grid bounds using the Mediator
+                if (GameGridMediator.Instance.IsPositionValid(potentialNextPos))
+                {
+                    validDirections.Add(direction);
+                }
+            }
+            return validDirections;
+        }
     }
 }

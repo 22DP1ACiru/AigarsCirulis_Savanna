@@ -41,23 +41,20 @@ namespace Savanna.Web.Services
                     {
                         var session = _sessionService.GetOrCreateSession(sessionId);
 
+                        if (session?.IsStalled ?? false)
+                        {
+                            await _hubContext.Clients.Group(sessionId)
+                                .SendAsync("GameStalled", "Cannot place new animals: Grid area full! Please Reset.", stoppingToken);
+                            continue; // Skip update for this session
+                        }
+
                         if (session != null && !string.IsNullOrEmpty(session.OwnerUserId))
                         {
                             try
                             {
-                                var grid = session.Engine.GetDisplayGrid().ToJaggedArray();
-                                var iterationCount = session.Engine.IterationCount;
-                                var livingAnimalCount = session.Engine.LivingAnimalCount;
-
-                                var updatePayload = new
-                                {
-                                    Grid = grid,
-                                    IterationCount = iterationCount,
-                                    LivingAnimalCount = livingAnimalCount
-                                };
-
+                                var payload = PayloadUtils.CreateWebPayload(session, _logger);
                                 await _hubContext.Clients.Group(sessionId)
-                                    .SendAsync("ReceiveUpdate", updatePayload, stoppingToken);
+                                    .SendAsync("ReceiveUpdate", payload, stoppingToken);
                             }
                             catch (Exception ex)
                             {

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using Savanna.Backend.Constants;
+    using Savanna.Backend.Exceptions;
     using Savanna.Backend.Interfaces;
     using Savanna.Backend.Models;
     using Savanna.Backend.Models.State;
@@ -17,6 +18,8 @@
         private readonly object _lock = new object();
         private IGameGrid _gameGrid;
         private readonly IAnimalFactory _animalFactory;
+
+        public bool IsStalled { get; private set; } = false;
 
         public int IterationCount { get; private set; }
         public int LivingAnimalCount
@@ -45,6 +48,7 @@
                 _animals.Clear();
                 IterationCount = 0;
                 _gameGrid = new GameGrid(_animals);
+                IsStalled = false;
 
                 GameEngineMediator.Instance.RegisterGameEngine(this);
                 GameGridMediator.Instance.RegisterGameGrid(_gameGrid);
@@ -56,6 +60,8 @@
         /// </summary>
         public void Update()
         {
+            if (IsStalled) return;
+
             // Create a copy of the animal list to avoid modification issues during iteration
             List<IAnimal> animalsToAct;
             List<IAnimal> snapshotForAct;
@@ -64,45 +70,59 @@
             {
                 IterationCount++;
 
+                foreach(var animal in _animals)
+                {
+                    animal.IncrementAge();
+                }
+
                 animalsToAct = _animals.Where(a => a.IsAlive).ToList();
                 snapshotForAct = _animals.ToList();
 
-                foreach (var animal in animalsToAct)
+                try
                 {
-                    if (animal.IsAlive)
+                    foreach (var animal in animalsToAct)
                     {
-                        try
+                        if (animal.IsAlive)
                         {
                             animal.Act(snapshotForAct);
                         }
-                        catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
-                        {
-                            Console.WriteLine($"[ERROR][Session Update] Grid full exception during animal action: {ioex.Message}");
-                            break; // Stop processing actions for this tick if grid is full during Act
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"[ERROR][Session Update] Exception during Act for {animal.GetType().Name}: {ex.Message}");
-                        }
                     }
-                }
 
-                try
-                {
                     GameEngineMediator.Instance.ProcessPendingAnimals(); // Process births etc.
+
+                    _animals.RemoveAll(a => !a.IsAlive); // Remove dead animals
                 }
-                catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
+                catch (GridFullException gfex)
                 {
-                    Console.WriteLine($"[ERROR][Session Update] Grid full exception during ProcessPendingAnimals: {ioex.Message}");
+                    IsStalled = true;
+                    Console.WriteLine(string.Format(LoggingConstants.GameEngineUpdateStalled, gfex.Message));
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ERROR][Session Update] Exception during ProcessPendingAnimals: {ex.Message}");
+                    Console.WriteLine(string.Format(LoggingConstants.GameEngineUnexpectedError, ex.Message));
                 }
+            }
+        }
 
-                // Remove dead animals
-                _animals.RemoveAll(a => !a.IsAlive);
+        /// <summary>
+        /// Gets animal at specified position.
+        /// </summary>
+        /// <param name="position">Specified position.</param>
+        /// <returns>Animal at position.</returns>
+        public IAnimal GetAnimalAtPosition(Position position)
+        {
+            lock (_lock)
+            {
+                return _animals.FirstOrDefault(a => a.IsAlive && a.Position.Equals(position));
+            }
+        }
 
+        public IAnimal GetAnimalById(Guid id)
+        {
+            lock (_lock)
+            {
+                // Find the first (and should be only) animal with this ID
+                return _animals.FirstOrDefault(a => a.UniqueId == id);
             }
         }
 
@@ -122,10 +142,32 @@
                     animal.Position = position;
                     _animals.Add(animal);
                 }
-                catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full") || ioex.Message.Contains("find empty position"))
+                catch (GridFullException gfex)
                 {
-                    Console.WriteLine($"[WARNING] Failed to add animal {animal.GetType().Name}: {ioex.Message}");
+                    Console.WriteLine(string.Format(LoggingConstants.GameEngineAddAnimalFailed, animal.GetType().Name, gfex.Message));
                 }
+            }
+        }
+
+        public bool AddAnimalByName(string animalTypeName)
+        {
+            if (IsStalled) // Don't add if stalled
+            {
+                return false;
+            }
+
+            // Use the factory to create the correct instance
+            IAnimal animal = _animalFactory.CreateAnimalByType(animalTypeName, new Position(0, 0)); // Position will be overridden by AddAnimal
+
+            if (animal != null)
+            {
+                AddAnimal(animal); // Use existing AddAnimal to find random spot & add to list
+                                   // AddAnimal handles the GridFullException if placement fails
+                return true; // Return true indicating successful *attempt* to add (placement might still fail silently in AddAnimal based on logging)
+            }
+            else
+            {
+                return false; // Factory couldn't create it
             }
         }
 

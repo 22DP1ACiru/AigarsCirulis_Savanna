@@ -3,10 +3,13 @@
     public class AnimalStateDto
     {
         // Common properties from AnimalBase/IAnimal
+        public Guid UniqueId { get; set; }
         public string AnimalType { get; set; } // e.g., "Lion", "Antelope", plugin type name
         public Position Position { get; set; }
         public double Health { get; set; }
         public bool IsAlive { get; set; }
+        public int Age { get; set; }
+        public int OffspringCount { get; set; }
 
         // Specific properties (can be nullable if not applicable to all)
         public int? DigestionTimeRemaining { get; set; } // From ICarnivore (Lion)

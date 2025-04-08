@@ -15,12 +15,18 @@
     <h2 class="mb-3">Savanna Game <small class="text-muted fs-6">- Session: @Model.SessionId</small></h2>
 
     <div class="d-flex flex-row align-items-start mb-3">
-        @* Container for the game grid *@
-        <div id="gameGrid" 
-             class="game-grid me-4"
-             data-session-id="@Model.SessionId"
-             data-empty-char="@cellChar">
-            <p>Loading game grid...</p>
+        <div class="grid-container me-4">
+            <div id="gameGrid" 
+                    class="game-grid"
+                    data-session-id="@Model.SessionId"
+                    data-empty-char="@cellChar">
+
+                <p>Loading game grid...</p>
+            </div>
+
+            <div id="gridOverlayMessage" class="grid-overlay-message">
+                <span id="gridOverlayText"></span> @* Span for the text *@
+            </div>
         </div>
 
         <div class="game-controls">
@@ -41,6 +47,30 @@
                 <p class="mb-0">Iteration: <span id="iterationCount" class="fw-bold">0</span></p>
                 <p class="mb-0">Animals Alive: <span id="animalCount" class="fw-bold">0</span></p>
             </div>
+            <hr />
+            <div>
+                <h5>Display</h5>
+                <div class="d-grid mb-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnDisplayMode">
+                        Use Icons
+                    </button>
+                </div>
+            </div>
+
+            <div id="animalStatsDisplay" style="border: 1px solid #ddd; padding: 10px; margin-top: 15px; background-color: #f9f9f9; border-radius: 4px;">
+                Click an animal...
+            </div>
+
+            <div id="pluginControls" style="display: none;">
+                <hr />
+                <h5>Add Plugin Animal</h5>
+                <div class="input-group input-group-sm mb-2">
+                    <select class="form-select" id="selectPluginAnimalToAdd">
+                        <option selected disabled value="">Select Plugin...</option>
+                    </select>
+                    <button class="btn btn-outline-info" type="button" id="btnAddSelectedPluginAnimal" disabled>Add</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -56,20 +86,25 @@
 
     @* Include SignalR client library *@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-    <script src="~/js/game-play.js" type="module" asp-append-version="true"></script>
+    <script src="~/js/game/game-play.js" type="module" asp-append-version="true"></script>
 
     <style>
+        .grid-container {
+            position: relative;
+            width: fit-content;
+        }
+
         .game-grid {
             display: grid;
-            grid-template-columns: repeat( @gridWidth, 28px); /* Adjust cell size */
+            grid-template-columns: repeat( @gridWidth, 28px);
             gap: 0;
             font-family: Consolas, monospace;
-            line-height: 1; /* Prevent extra spacing */
-            margin-bottom: 1em;
-            background-color: #f0f0f0; /* Light background for the grid area */
+            line-height: 1;
+            /* margin-bottom: 1em; */
             border: 1px solid #ccc;
-            width: fit-content; /* Grid only as wide as needed */
-            padding: 2px; /* Small padding around cells */
+            background-color: #f0f0f0;
+            padding: 2px;
+            box-sizing: border-box;
         }
 
         .game-row {
@@ -94,6 +129,34 @@
 
         .game-controls {
             min-width: 180px;
+        }
+
+        .game-cell.highlighted {
+            outline: 3px solid blue;
+            outline-offset: -2px;
+            z-index: 10;
+        }
+
+        .grid-overlay-message {
+            position: absolute; /* Position over the grid */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(217, 83, 79, 0.85); /* Semi-transparent danger red */
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 100; /* Ensure it's on top */
+            /* Use flexbox to center text */
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: default; /* Indicate it's not interactive */
         }
     </style>
 

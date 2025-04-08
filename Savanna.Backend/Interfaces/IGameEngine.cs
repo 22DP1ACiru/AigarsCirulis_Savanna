@@ -3,6 +3,7 @@
     public interface IGameEngine
     {
         int IterationCount { get; }
+        bool IsStalled { get; }
 
         /// <summary>
         /// Initializes the game engine by creating a new game grid and clearing existing animals.
@@ -19,6 +20,20 @@
         /// </summary>
         /// <param name="animal">Animal object to add.</param>
         void AddAnimal(IAnimal animal);
+
+        /// <summary>
+        /// Adds a new animal by specified type name for use with Savanna.Web
+        /// </summary>
+        /// <param name="animalTypeName"></param>
+        /// <returns></returns>
+        bool AddAnimalByName(string animalTypeName);
+
+        /// <summary>
+        /// Gets animal by unique ID.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IAnimal GetAnimalById(Guid id);
 
         /// <summary>
         /// Generates a display grid representing the current state of the game.

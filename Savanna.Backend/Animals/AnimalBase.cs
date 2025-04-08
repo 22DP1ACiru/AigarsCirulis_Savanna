@@ -15,6 +15,7 @@
 
         public virtual string AnimalTypeName => this.GetType().Name;
 
+        public Guid UniqueId { get; }
         public Position Position { get; set; }
         public abstract char Symbol { get; }
         public virtual int VisionRange => _configService.AnimalConfig.DefaultVisionRange;
@@ -25,12 +26,15 @@
         public abstract double MaxHealth { get; }
         public abstract int PowerLevel { get; }
         public virtual double HealthDrainPerMove => _configService.AnimalConfig.HealthDrainPerMove;
+        public int Age { get; protected set; } = 0;
+        public int OffspringCount { get; protected set; } = 0;
 
         public int ReproductionProximityCounter => _configService.AnimalConfig.ReproductionProximityCounter;
         public double ReproductionRange => _configService.AnimalConfig.ReproductionRange;
 
         protected AnimalBase(Position position)
         {
+            UniqueId = Guid.NewGuid();  
             Position = position;
             Health = MaxHealth;
         }
@@ -39,10 +43,13 @@
         {
             return new AnimalStateDto
             {
+                UniqueId = this.UniqueId,
                 AnimalType = this.AnimalTypeName,
                 Position = this.Position,
                 Health = this.Health,
-                IsAlive = this.IsAlive
+                IsAlive = this.IsAlive,
+                Age = this.Age,
+                OffspringCount = this.OffspringCount
             };
         }
 
@@ -56,6 +63,8 @@
             this.Position = state.Position;
             this.Health = Math.Clamp(state.Health, 0, this.MaxHealth); // Ensure health is valid
             this.IsAlive = state.IsAlive;
+            this.Age = state.Age;
+            this.OffspringCount = state.OffspringCount;
 
             _proximityCounter.Clear();
         }
@@ -109,6 +118,17 @@
                 }
             }
         }
+        protected virtual void MoveRandomlyIfPossible()
+        {
+            var validDirections = DirectionExtensions.GetValidMoveDirections(this.Position);
+            if (!validDirections.Any())
+            {
+                // No valid moves, do nothing
+            }
+
+            Direction chosenDirection = validDirections[Random.Next(validDirections.Count)];
+            Move(chosenDirection);
+        }
 
         public virtual List<IAnimal> LookAround(List<IAnimal> animals)
         {
@@ -160,6 +180,10 @@
                     // Check if the animals have been together for specified consecutive turns
                     if (_proximityCounter[animal] >= ReproductionProximityCounter)
                     {
+                        // Incrementing offspring counter for both parents
+                        this.IncrementOffspringCount();
+                        animal.IncrementOffspringCount();
+
                         // Only one animal initiates reproduction to avoid duplicate offspring
                         if (GetHashCode() < animal.GetHashCode())
                         {
@@ -186,21 +210,26 @@
         {
             Position birthPosition = null;
 
-            try
-            {
                 birthPosition = GameGridMediator.Instance.FindEmptyAdjacentPosition(Position);
-            }
-            catch (InvalidOperationException ioex) when (ioex.Message.Contains("Grid is full"))
-            {
-                Console.WriteLine($"[INFO] Animal {Symbol} at {Position} could not create offspring: {ioex.Message}");
-                birthPosition = null;
-            }
 
             if (birthPosition != null)
             {
                 IAnimal offspring = Birth(birthPosition);
                 GameEngineMediator.Instance.RequestAnimalCreation(offspring);
             }
+        }
+
+        public virtual void IncrementAge()
+        {
+            if (this.IsAlive)
+            {
+                this.Age++;
+            }
+        }
+
+        public virtual void IncrementOffspringCount()
+        {
+            this.OffspringCount++;
         }
 
         protected abstract IAnimal Birth(Position position);
